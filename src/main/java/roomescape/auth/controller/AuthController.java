@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.auth.payload.LoginRequest;
 import roomescape.auth.service.AuthService;
+import roomescape.auth.support.LoginMember;
+import roomescape.auth.support.LoginMemberInfo;
 import roomescape.member.entity.Member;
 import roomescape.member.payload.MemberResponse;
 
@@ -33,7 +35,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(HttpSession session) {
+    public void logout(@LoginMember LoginMemberInfo loginMember, HttpSession session) {
         session.invalidate();
     }
 }

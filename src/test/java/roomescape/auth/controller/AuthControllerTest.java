@@ -95,6 +95,49 @@ class AuthControllerTest {
                 .statusCode(204);
     }
 
+    @Test
+    void 로그인한_회원_정보를_조회한다() {
+        createMember("사용자", "member@example.com", "password");
+        String sessionId = login("member@example.com", "password");
+
+        RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
+                .when().get("/members/me")
+                .then().log().all()
+                .statusCode(200)
+                .body("id", is(1))
+                .body("name", is("사용자"))
+                .body("email", is("member@example.com"));
+    }
+
+    @Test
+    void 로그인하지_않고_회원_정보를_조회하면_401을_응답한다() {
+        RestAssured.given().log().all()
+                .when().get("/members/me")
+                .then().log().all()
+                .statusCode(401)
+                .body("message", is("로그인이 필요합니다."));
+    }
+
+    @Test
+    void 로그아웃하면_회원_정보를_조회할_수_없다() {
+        createMember("사용자", "member@example.com", "password");
+        String sessionId = login("member@example.com", "password");
+
+        RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
+                .when().post("/logout")
+                .then().log().all()
+                .statusCode(204);
+
+        RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
+                .when().get("/members/me")
+                .then().log().all()
+                .statusCode(401)
+                .body("message", is("로그인이 필요합니다."));
+    }
+
     private void createMember(String name, String email, String password) {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
@@ -107,5 +150,20 @@ class AuthControllerTest {
                 .when().post("/members")
                 .then().log().all()
                 .statusCode(201);
+    }
+
+    private String login(String email, String password) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", email);
+        params.put("password", password);
+
+        return RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/login")
+                .then().log().all()
+                .statusCode(200)
+                .extract()
+                .cookie("JSESSIONID");
     }
 }

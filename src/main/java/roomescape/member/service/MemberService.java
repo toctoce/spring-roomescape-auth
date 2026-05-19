@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.member.entity.Member;
 import roomescape.member.exception.MemberDuplicatedException;
+import roomescape.member.exception.MemberNotFoundException;
 import roomescape.member.payload.MemberCreateRequest;
 import roomescape.member.repository.MemberRepository;
 
@@ -27,5 +28,11 @@ public class MemberService {
         if (memberRepository.existsByEmail(email)) {
             throw new MemberDuplicatedException(email);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Member findById(Long id) {
+        return memberRepository.findById(id)
+                .orElseThrow(() -> new MemberNotFoundException(id));
     }
 }
