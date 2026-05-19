@@ -14,6 +14,23 @@
         <a href="#reservation" data-route="reservation">예약</a>
         <a href="#admin" data-route="admin">관리자</a>
     </nav>
+    <div class="auth-bar">
+        <form id="login-form" class="auth-form">
+            <input id="login-email" type="email" placeholder="이메일" required>
+            <input id="login-password" type="password" placeholder="비밀번호" required>
+            <button type="submit">로그인</button>
+        </form>
+        <form id="signup-form" class="auth-form">
+            <input id="signup-name" type="text" placeholder="이름" required>
+            <input id="signup-email" type="email" placeholder="이메일" required>
+            <input id="signup-password" type="password" placeholder="비밀번호" required>
+            <button type="submit">회원가입</button>
+        </form>
+        <div id="member-menu" class="member-menu" hidden>
+            <span id="login-member-label"></span>
+            <button id="logout-button" type="button">로그아웃</button>
+        </div>
+    </div>
 </header>
 
 <main class="container">
@@ -65,10 +82,6 @@
                 <h2>내 예약</h2>
             </div>
             <form id="my-reservation-form" class="toolbar compact my-reservation-toolbar">
-                <label>
-                    회원 ID
-                    <input id="my-reservation-member-id" type="number" min="1" required>
-                </label>
                 <button type="submit">조회</button>
             </form>
             <div class="table-wrap">
@@ -109,10 +122,6 @@
         <section class="panel">
             <h2>예약 정보</h2>
             <form id="reservation-form" class="grid-form">
-                <label>
-                    회원 ID
-                    <input id="reservation-member-id" type="number" min="1" required>
-                </label>
                 <label>
                     날짜
                     <input id="selected-date" type="date" required>

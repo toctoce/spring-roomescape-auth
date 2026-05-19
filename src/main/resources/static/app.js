@@ -1,4 +1,5 @@
 const state = {
+  currentMember: null,
   reservations: [],
   myReservations: [],
   themes: [],
@@ -37,6 +38,18 @@ function bindEvents() {
     await runSafely(loadPopularThemes);
   });
 
+  $("#login-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await runSafely(login);
+  });
+
+  $("#signup-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await runSafely(signup);
+  });
+
+  $("#logout-button").addEventListener("click", () => runSafely(logout));
+
   $("#reservation-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     await runSafely(createReservation);
@@ -66,9 +79,14 @@ function bindEvents() {
 }
 
 async function loadAll() {
-  await Promise.all([loadReservations(), loadThemes(), loadTimes()]);
+  await Promise.all([loadCurrentMember(), loadReservations(), loadThemes(), loadTimes()]);
   renderHome();
   renderReservationOptions();
+}
+
+async function loadCurrentMember() {
+  state.currentMember = await request("/members/me", { silent: true }).catch(() => null);
+  renderAuth();
 }
 
 async function loadReservations() {
@@ -78,13 +96,12 @@ async function loadReservations() {
 }
 
 async function loadMyReservations() {
-  const memberId = $("#my-reservation-member-id").value.trim();
-  if (!memberId) {
-    showNotice("회원 ID를 입력해주세요.", true);
+  if (!state.currentMember) {
+    showNotice("로그인이 필요합니다.", true);
     return;
   }
 
-  state.myReservations = await request(`/reservations?memberId=${encodeURIComponent(memberId)}`);
+  state.myReservations = await request("/reservations");
   renderMyReservations();
   showNotice("내 예약을 조회했습니다.");
 }
@@ -123,14 +140,62 @@ async function loadPopularThemes() {
   showNotice("인기 테마를 조회했습니다.");
 }
 
+async function signup() {
+  const payload = {
+    name: $("#signup-name").value.trim(),
+    email: $("#signup-email").value.trim(),
+    password: $("#signup-password").value,
+  };
+
+  await request("/members", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  $("#signup-form").reset();
+  $("#login-email").value = payload.email;
+  $("#login-password").value = payload.password;
+  showNotice("회원가입이 완료되었습니다.");
+}
+
+async function login() {
+  const payload = {
+    email: $("#login-email").value.trim(),
+    password: $("#login-password").value,
+  };
+
+  state.currentMember = await request("/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  $("#login-form").reset();
+  renderAuth();
+  await loadMyReservations();
+  showNotice("로그인되었습니다.");
+}
+
+async function logout() {
+  await request("/logout", { method: "POST" });
+  state.currentMember = null;
+  state.myReservations = [];
+  renderAuth();
+  renderMyReservations();
+  showNotice("로그아웃되었습니다.");
+}
+
 async function createReservation() {
+  if (!state.currentMember) {
+    showNotice("로그인이 필요합니다.", true);
+    return;
+  }
+
   if (!$("#selected-time").value) {
     showNotice("예약할 시간을 선택해주세요.", true);
     return;
   }
 
   const payload = {
-    memberId: Number($("#reservation-member-id").value),
     date: $("#selected-date").value,
     timeId: Number($("#selected-time").value),
     themeId: Number($("#selected-theme").value),
@@ -146,9 +211,7 @@ async function createReservation() {
   state.availableTimes = [];
   renderAvailableTimes();
   await loadReservations();
-  if (Number($("#my-reservation-member-id").value) === payload.memberId) {
-    await loadMyReservations();
-  }
+  await loadMyReservations();
   showNotice("예약이 생성되었습니다.");
 }
 
@@ -194,8 +257,7 @@ async function deleteAdminReservation(id) {
 
 async function cancelMyReservation(id) {
   await runSafely(async () => {
-    const memberId = $("#my-reservation-member-id").value.trim();
-    await request(`/reservations/${id}?memberId=${encodeURIComponent(memberId)}`, { method: "DELETE" });
+    await request(`/reservations/${id}`, { method: "DELETE" });
     await loadReservations();
     await loadMyReservations();
     showNotice("예약이 취소되었습니다.");
@@ -204,14 +266,13 @@ async function cancelMyReservation(id) {
 
 async function updateMyReservation(id) {
   await runSafely(async () => {
-    const memberId = $("#my-reservation-member-id").value.trim();
     const payload = {
       date: $(`#my-reservation-date-${id}`).value || null,
       timeId: Number($(`#my-reservation-time-${id}`).value) || null,
       themeId: Number($(`#my-reservation-theme-${id}`).value) || null,
     };
 
-    await request(`/reservations/${id}?memberId=${encodeURIComponent(memberId)}`, {
+    await request(`/reservations/${id}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
@@ -239,19 +300,22 @@ async function deleteTime(id) {
 }
 
 async function request(path, options = {}) {
+  const { silent = false, ...fetchOptions } = options;
   const response = await fetch(path, {
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    ...options,
+    ...fetchOptions,
   });
 
   if (!response.ok) {
     const message = await readErrorMessage(response);
-    showNotice(message, true);
+    if (!silent) {
+      showNotice(message, true);
+    }
     const error = new Error(message);
-    error.noticeShown = true;
+    error.noticeShown = !silent;
     throw error;
   }
 
@@ -313,6 +377,17 @@ function renderPopularThemes() {
   $("#popular-theme-cards").innerHTML = state.popularThemes.length
     ? state.popularThemes.map(themeCard).join("")
     : empty("조건에 맞는 인기 테마가 없습니다.");
+}
+
+function renderAuth() {
+  const isLoggedIn = Boolean(state.currentMember);
+
+  $("#login-form").hidden = isLoggedIn;
+  $("#signup-form").hidden = isLoggedIn;
+  $("#member-menu").hidden = !isLoggedIn;
+  $("#login-member-label").textContent = isLoggedIn
+    ? `${state.currentMember.name} (${state.currentMember.email})`
+    : "";
 }
 
 function renderReservationOptions() {

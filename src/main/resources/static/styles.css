@@ -39,6 +39,35 @@ a {
     flex-wrap: wrap;
 }
 
+.auth-bar {
+    display: grid;
+    gap: 8px;
+    justify-items: end;
+}
+
+.auth-form,
+.member-menu {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.auth-form input {
+    width: 150px;
+    min-height: 38px;
+}
+
+.auth-form input[type="password"] {
+    width: 120px;
+}
+
+.member-menu span {
+    color: #536271;
+    font-weight: 800;
+}
+
 .tabs a,
 .button,
 button {
@@ -334,8 +363,21 @@ th {
     }
 
     .tabs,
-    .tabs a {
+    .tabs a,
+    .auth-bar,
+    .auth-form,
+    .member-menu,
+    .auth-form input {
         width: 100%;
+    }
+
+    .auth-bar {
+        justify-items: stretch;
+    }
+
+    .auth-form,
+    .member-menu {
+        justify-content: stretch;
     }
 
     .metrics,
