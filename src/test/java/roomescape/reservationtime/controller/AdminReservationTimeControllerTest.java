@@ -76,13 +76,14 @@ class AdminReservationTimeControllerTest {
     @Sql("/create_reservation_time.sql")
     @Test
     void 예약이_존재하는_예약_시간을_삭제하면_409를_응답한다() {
+        String sessionId = login();
         Map<String, Object> params = new HashMap<>();
-        params.put("memberId", 1L);
         params.put("date", "2099-05-06");
         params.put("timeId", 1);
         params.put("themeId", 1);
 
         RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
@@ -110,4 +111,18 @@ class AdminReservationTimeControllerTest {
                 .statusCode(400);
     }
 
+    private String login() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", "bongus@example.com");
+        params.put("password", "password");
+
+        return RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/login")
+                .then().log().all()
+                .statusCode(200)
+                .extract()
+                .cookie("JSESSIONID");
+    }
 }

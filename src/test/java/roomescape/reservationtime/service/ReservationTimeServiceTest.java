@@ -58,12 +58,11 @@ class ReservationTimeServiceTest {
         ReservationTime reservationTime2 = reservationTimeService.save(new ReservationTimeRequest(LocalTime.of(11, 5)));
         Theme theme = themeService.save(new ThemeRequest("테마", "테마 설명", "https://example.com/theme.png"));
         ReservationRequest reservationRequest = new ReservationRequest(
-                1L,
                 LocalDate.of(2099, 5, 6),
                 reservationTime1.getId(),
                 theme.getId()
         );
-        Reservation reservation = reservationService.save(reservationRequest);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
 
         List<ReservationTime> reservationTimes = reservationTimeService.findAvailableReservationTimes(
                 reservation.getDate(),

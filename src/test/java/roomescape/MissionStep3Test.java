@@ -74,13 +74,26 @@ public class MissionStep3Test {
                 .then().log().all()
                 .statusCode(201);
 
+        Map<String, Object> loginRequest = new HashMap<>();
+        loginRequest.put("email", "brown@example.com");
+        loginRequest.put("password", "password");
+
+        String sessionId = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when().post("/login")
+                .then().log().all()
+                .statusCode(200)
+                .extract()
+                .cookie("JSESSIONID");
+
         Map<String, Object> reservation = new HashMap<>();
-        reservation.put("memberId", 1);
         reservation.put("date", "2099-08-05");
         reservation.put("timeId", 1);
         reservation.put("themeId", 1);
 
         RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")

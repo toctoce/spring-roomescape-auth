@@ -5,6 +5,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
@@ -25,11 +28,13 @@ class ReservationTimeControllerTest {
     @Sql({"/create_reservation_time.sql", "/create_theme.sql"})
     @Test
     void 예약_가능한_시간_목록을_조회한다() {
+        String sessionId = login();
+
         RestAssured.given().log().all()
-                .contentType("application/json")
+                .cookie("JSESSIONID", sessionId)
+                .contentType(ContentType.JSON)
                 .body("""
                         {
-                          "memberId": 1,
                           "date": "2099-05-06",
                           "timeId": 1,
                           "themeId": 1
@@ -77,5 +82,20 @@ class ReservationTimeControllerTest {
                 .then().log().all()
                 .statusCode(400)
                 .body("message", is("date: 입력 형식이 잘못되었습니다."));
+    }
+
+    private String login() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", "bongus@example.com");
+        params.put("password", "password");
+
+        return RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/login")
+                .then().log().all()
+                .statusCode(200)
+                .extract()
+                .cookie("JSESSIONID");
     }
 }

@@ -17,18 +17,7 @@ class AdminReservationControllerTest {
 
     @Test
     void 관리자가_예약_목록을_조회한다() {
-        Map<String, Object> params = new HashMap<>();
-        params.put("memberId", 2L);
-        params.put("date", "2099-05-03");
-        params.put("timeId", 1L);
-        params.put("themeId", 1L);
-
-        RestAssured.given().log().all()
-                .contentType(ContentType.JSON)
-                .body(params)
-                .when().post("/reservations")
-                .then().log().all()
-                .statusCode(201);
+        createReservation();
 
         RestAssured.given().log().all()
                 .when().get("/admin/reservations")
@@ -41,20 +30,7 @@ class AdminReservationControllerTest {
 
     @Test
     void 관리자가_예약을_삭제한다() {
-        Map<String, Object> params = new HashMap<>();
-        params.put("memberId", 2L);
-        params.put("date", "2099-05-03");
-        params.put("timeId", 1L);
-        params.put("themeId", 1L);
-
-        Integer id = RestAssured.given().log().all()
-                .contentType(ContentType.JSON)
-                .body(params)
-                .when().post("/reservations")
-                .then().log().all()
-                .statusCode(201)
-                .extract()
-                .path("id");
+        Integer id = createReservation();
 
         RestAssured.given().log().all()
                 .when().delete("/admin/reservations/" + id)
@@ -75,5 +51,38 @@ class AdminReservationControllerTest {
                 .then().log().all()
                 .statusCode(404)
                 .body("message", is("존재하지 않는 예약입니다. id=999"));
+    }
+
+    private Integer createReservation() {
+        String sessionId = login();
+        Map<String, Object> params = new HashMap<>();
+        params.put("date", "2099-05-03");
+        params.put("timeId", 1L);
+        params.put("themeId", 1L);
+
+        return RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(201)
+                .extract()
+                .path("id");
+    }
+
+    private String login() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", "milan@example.com");
+        params.put("password", "password");
+
+        return RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/login")
+                .then().log().all()
+                .statusCode(200)
+                .extract()
+                .cookie("JSESSIONID");
     }
 }

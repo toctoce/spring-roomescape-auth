@@ -28,9 +28,9 @@ class ReservationServiceTest {
 
     @Test
     void 예약요청을_올바르게_저장하는지_확인하는_테스트() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
-        assertThat(reservation.getMemberId()).isEqualTo(reservationRequest.memberId());
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
+        assertThat(reservation.getMemberId()).isEqualTo(1L);
         assertThat(reservation.getDate()).isEqualTo(reservationRequest.date());
         assertThat(reservation.getTime().getId()).isEqualTo(reservationRequest.timeId());
         assertThat(reservation.getTheme().getId()).isEqualTo(reservationRequest.themeId());
@@ -38,24 +38,24 @@ class ReservationServiceTest {
 
     @Test
     void 없는_예약시간_id를_입력하면_에러를_던진다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 999L, 1L);
-        assertThatThrownBy(() -> reservationService.save(reservationRequest))
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 999L, 1L);
+        assertThatThrownBy(() -> reservationService.save(1L, reservationRequest))
                 .isInstanceOf(ReservationTimeNotFoundException.class);
     }
 
     @Test
     void 없는_테마_id를_입력하면_에러를_던진다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 999L);
-        assertThatThrownBy(() -> reservationService.save(reservationRequest))
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 999L);
+        assertThatThrownBy(() -> reservationService.save(1L, reservationRequest))
                 .isInstanceOf(ThemeNotFoundException.class);
     }
 
     @Test
     void 같은_날짜_같은_시간_다른_테마는_예약이_가능하다() {
-        ReservationRequest reservationRequest1 = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        ReservationRequest reservationRequest2 = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 2L);
-        Reservation reservation1 = reservationService.save(reservationRequest1);
-        Reservation reservation2 = reservationService.save(reservationRequest2);
+        ReservationRequest reservationRequest1 = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        ReservationRequest reservationRequest2 = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 2L);
+        Reservation reservation1 = reservationService.save(1L, reservationRequest1);
+        Reservation reservation2 = reservationService.save(1L, reservationRequest2);
 
         List<Reservation> reservations = reservationService.findAll();
         assertThat(reservations).contains(reservation1, reservation2);
@@ -63,17 +63,17 @@ class ReservationServiceTest {
 
     @Test
     void 이미_있는_예약을_다시_생성하면_에러를_던진다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        reservationService.save(1L, reservationRequest);
 
-        assertThatThrownBy(() -> reservationService.save(reservationRequest))
+        assertThatThrownBy(() -> reservationService.save(1L, reservationRequest))
                 .isInstanceOf(ReservationDuplicatedException.class);
     }
 
     @Test
     void 예약목록을_올바르게_조회하는지_확인하는_테스트() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
 
         List<Reservation> reservations = reservationService.findAll();
 
@@ -82,12 +82,12 @@ class ReservationServiceTest {
 
     @Test
     void 회원_id로_예약목록을_조회한다() {
-        ReservationRequest reservationRequest1 = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        ReservationRequest reservationRequest2 = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 2L, 1L);
-        ReservationRequest otherReservationRequest = new ReservationRequest(2L, LocalDate.of(2099, 5, 6), 3L, 1L);
-        Reservation reservation1 = reservationService.save(reservationRequest1);
-        Reservation reservation2 = reservationService.save(reservationRequest2);
-        reservationService.save(otherReservationRequest);
+        ReservationRequest reservationRequest1 = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        ReservationRequest reservationRequest2 = new ReservationRequest(LocalDate.of(2099, 5, 6), 2L, 1L);
+        ReservationRequest otherReservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 3L, 1L);
+        Reservation reservation1 = reservationService.save(1L, reservationRequest1);
+        Reservation reservation2 = reservationService.save(1L, reservationRequest2);
+        reservationService.save(2L, otherReservationRequest);
 
         List<Reservation> reservations = reservationService.findByMemberId(1L);
 
@@ -96,8 +96,8 @@ class ReservationServiceTest {
 
     @Test
     void 예약을_올바르게_삭제하는지_확인하는_테스트() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
 
         reservationService.deleteById(reservation.getId());
 
@@ -113,8 +113,8 @@ class ReservationServiceTest {
 
     @Test
     void 회원_id가_같으면_예약을_취소한다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
 
         reservationService.cancelByIdAndMemberId(reservation.getId(), 1L);
 
@@ -130,8 +130,8 @@ class ReservationServiceTest {
 
     @Test
     void 회원_id가_다르면_예약을_취소할_수_없다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
 
         assertThatThrownBy(() -> reservationService.cancelByIdAndMemberId(reservation.getId(), 999L))
                 .isInstanceOf(ReservationAccessDeniedException.class);
@@ -139,8 +139,8 @@ class ReservationServiceTest {
 
     @Test
     void 예약을_수정한다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
         ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(LocalDate.of(2099, 5, 7), 2L, 2L);
 
         Reservation updatedReservation = reservationService.updateByIdAndMemberId(
@@ -166,8 +166,8 @@ class ReservationServiceTest {
 
     @Test
     void 회원_id가_다르면_예약을_수정할_수_없다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
         ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(LocalDate.of(2099, 5, 7), null, null);
 
         assertThatThrownBy(() -> reservationService.updateByIdAndMemberId(reservation.getId(), 999L, updateRequest))
@@ -176,8 +176,8 @@ class ReservationServiceTest {
 
     @Test
     void 존재하지_않는_예약시간으로_수정하면_에러를_던진다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
         ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(null, 999L, null);
 
         assertThatThrownBy(() -> reservationService.updateByIdAndMemberId(reservation.getId(), 1L, updateRequest))
@@ -186,8 +186,8 @@ class ReservationServiceTest {
 
     @Test
     void 존재하지_않는_테마로_수정하면_에러를_던진다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
         ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(LocalDate.of(2099, 5, 6), 1L, 999L);
 
         assertThatThrownBy(() -> reservationService.updateByIdAndMemberId(reservation.getId(), 1L, updateRequest))
@@ -196,8 +196,8 @@ class ReservationServiceTest {
 
     @Test
     void 과거_날짜_시간으로_수정하면_에러를_던진다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
         ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(LocalDate.of(2000, 1, 1), 1L, 1L);
 
         assertThatThrownBy(() -> reservationService.updateByIdAndMemberId(reservation.getId(), 1L, updateRequest))
@@ -206,10 +206,10 @@ class ReservationServiceTest {
 
     @Test
     void 이미_예약된_날짜_시간_테마로_수정하면_에러를_던진다() {
-        ReservationRequest reservationRequest1 = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        ReservationRequest reservationRequest2 = new ReservationRequest(2L, LocalDate.of(2099, 5, 7), 2L, 1L);
-        reservationService.save(reservationRequest1);
-        Reservation reservation = reservationService.save(reservationRequest2);
+        ReservationRequest reservationRequest1 = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        ReservationRequest reservationRequest2 = new ReservationRequest(LocalDate.of(2099, 5, 7), 2L, 1L);
+        reservationService.save(1L, reservationRequest1);
+        Reservation reservation = reservationService.save(2L, reservationRequest2);
         ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
 
         assertThatThrownBy(() -> reservationService.updateByIdAndMemberId(reservation.getId(), 2L, updateRequest))
@@ -218,8 +218,8 @@ class ReservationServiceTest {
 
     @Test
     void 수정할_값이_없으면_에러를_던진다() {
-        ReservationRequest reservationRequest = new ReservationRequest(1L, LocalDate.of(2099, 5, 6), 1L, 1L);
-        Reservation reservation = reservationService.save(reservationRequest);
+        ReservationRequest reservationRequest = new ReservationRequest(LocalDate.of(2099, 5, 6), 1L, 1L);
+        Reservation reservation = reservationService.save(1L, reservationRequest);
         ReservationUpdateRequest updateRequest = new ReservationUpdateRequest(null, null, null);
 
         assertThatThrownBy(() -> reservationService.updateByIdAndMemberId(reservation.getId(), 1L, updateRequest))
