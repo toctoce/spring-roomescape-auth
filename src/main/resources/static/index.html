@@ -66,8 +66,8 @@
             </div>
             <form id="my-reservation-form" class="toolbar compact my-reservation-toolbar">
                 <label>
-                    이름
-                    <input id="my-reservation-name" type="text" maxlength="10" required>
+                    회원 ID
+                    <input id="my-reservation-member-id" type="number" min="1" required>
                 </label>
                 <button type="submit">조회</button>
             </form>
@@ -110,8 +110,8 @@
             <h2>예약 정보</h2>
             <form id="reservation-form" class="grid-form">
                 <label>
-                    이름
-                    <input id="reservation-name" type="text" maxlength="10" required>
+                    회원 ID
+                    <input id="reservation-member-id" type="number" min="1" required>
                 </label>
                 <label>
                     날짜
@@ -145,7 +145,7 @@
                     <thead>
                     <tr>
                         <th>ID</th>
-                        <th>이름</th>
+                        <th>회원 ID</th>
                         <th>날짜</th>
                         <th>테마</th>
                         <th>시간</th>

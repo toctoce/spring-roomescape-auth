@@ -18,7 +18,7 @@ class AdminReservationControllerTest {
     @Test
     void 관리자가_예약_목록을_조회한다() {
         Map<String, Object> params = new HashMap<>();
-        params.put("name", "밀란");
+        params.put("memberId", 2L);
         params.put("date", "2099-05-03");
         params.put("timeId", 1L);
         params.put("themeId", 1L);
@@ -34,7 +34,7 @@ class AdminReservationControllerTest {
                 .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(200)
-                .body("name", hasItem("밀란"))
+                .body("memberId", hasItem(2))
                 .body("date", hasItem("2099-05-03"))
                 .body("time.id", hasItem(1));
     }
@@ -42,7 +42,7 @@ class AdminReservationControllerTest {
     @Test
     void 관리자가_예약을_삭제한다() {
         Map<String, Object> params = new HashMap<>();
-        params.put("name", "밀란");
+        params.put("memberId", 2L);
         params.put("date", "2099-05-03");
         params.put("timeId", 1L);
         params.put("themeId", 1L);

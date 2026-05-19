@@ -38,8 +38,8 @@ public class ReservationController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ReservationResponse> getReservations(@RequestParam String name) {
-        return reservationService.findByName(name)
+    public List<ReservationResponse> getReservations(@RequestParam Long memberId) {
+        return reservationService.findByMemberId(memberId)
                 .stream()
                 .map(ReservationResponse::from)
                 .toList();
@@ -47,16 +47,16 @@ public class ReservationController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteReservation(@PathVariable Long id, @RequestParam String name) {
-        reservationService.cancelByIdAndName(id, name);
+    public void deleteReservation(@PathVariable Long id, @RequestParam Long memberId) {
+        reservationService.cancelByIdAndMemberId(id, memberId);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public ReservationResponse updateReservation(@PathVariable Long id,
-                                                 @RequestParam String name,
+                                                 @RequestParam Long memberId,
                                                  @Valid @RequestBody ReservationUpdateRequest request) {
-        Reservation reservation = reservationService.updateByIdAndName(id, name, request);
+        Reservation reservation = reservationService.updateByIdAndMemberId(id, memberId, request);
         return ReservationResponse.from(reservation);
     }
 }

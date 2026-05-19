@@ -77,7 +77,7 @@ class AdminReservationTimeControllerTest {
     @Test
     void 예약이_존재하는_예약_시간을_삭제하면_409를_응답한다() {
         Map<String, Object> params = new HashMap<>();
-        params.put("name", "봉구스");
+        params.put("memberId", 1L);
         params.put("date", "2099-05-06");
         params.put("timeId", 1);
         params.put("themeId", 1);

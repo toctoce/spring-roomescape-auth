@@ -78,13 +78,13 @@ async function loadReservations() {
 }
 
 async function loadMyReservations() {
-  const name = $("#my-reservation-name").value.trim();
-  if (!name) {
-    showNotice("이름을 입력해주세요.", true);
+  const memberId = $("#my-reservation-member-id").value.trim();
+  if (!memberId) {
+    showNotice("회원 ID를 입력해주세요.", true);
     return;
   }
 
-  state.myReservations = await request(`/reservations?name=${encodeURIComponent(name)}`);
+  state.myReservations = await request(`/reservations?memberId=${encodeURIComponent(memberId)}`);
   renderMyReservations();
   showNotice("내 예약을 조회했습니다.");
 }
@@ -130,7 +130,7 @@ async function createReservation() {
   }
 
   const payload = {
-    name: $("#reservation-name").value,
+    memberId: Number($("#reservation-member-id").value),
     date: $("#selected-date").value,
     timeId: Number($("#selected-time").value),
     themeId: Number($("#selected-theme").value),
@@ -146,7 +146,7 @@ async function createReservation() {
   state.availableTimes = [];
   renderAvailableTimes();
   await loadReservations();
-  if ($("#my-reservation-name").value.trim() === payload.name) {
+  if (Number($("#my-reservation-member-id").value) === payload.memberId) {
     await loadMyReservations();
   }
   showNotice("예약이 생성되었습니다.");
@@ -194,8 +194,8 @@ async function deleteAdminReservation(id) {
 
 async function cancelMyReservation(id) {
   await runSafely(async () => {
-    const name = $("#my-reservation-name").value.trim();
-    await request(`/reservations/${id}?name=${encodeURIComponent(name)}`, { method: "DELETE" });
+    const memberId = $("#my-reservation-member-id").value.trim();
+    await request(`/reservations/${id}?memberId=${encodeURIComponent(memberId)}`, { method: "DELETE" });
     await loadReservations();
     await loadMyReservations();
     showNotice("예약이 취소되었습니다.");
@@ -204,14 +204,14 @@ async function cancelMyReservation(id) {
 
 async function updateMyReservation(id) {
   await runSafely(async () => {
-    const name = $("#my-reservation-name").value.trim();
+    const memberId = $("#my-reservation-member-id").value.trim();
     const payload = {
       date: $(`#my-reservation-date-${id}`).value || null,
       timeId: Number($(`#my-reservation-time-${id}`).value) || null,
       themeId: Number($(`#my-reservation-theme-${id}`).value) || null,
     };
 
-    await request(`/reservations/${id}?name=${encodeURIComponent(name)}`, {
+    await request(`/reservations/${id}?memberId=${encodeURIComponent(memberId)}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
@@ -358,7 +358,7 @@ function renderReservations() {
     ? state.reservations.map((reservation) => `
         <tr>
           <td>${reservation.id}</td>
-          <td>${escapeHtml(reservation.name)}</td>
+          <td>${reservation.memberId}</td>
           <td>${reservation.date}</td>
           <td>${escapeHtml(reservation.theme?.name ?? "-")}</td>
           <td>${formatTime(reservation.time?.startAt)}</td>

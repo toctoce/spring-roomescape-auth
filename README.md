@@ -43,8 +43,10 @@
 | 추가 | 로그인     | `POST` | `/login`        | 불필요 | 로그인 성공 시 세션에 회원 정보를 저장한다.                  | `email`, `password`         | `200 OK`, 로그인 회원 정보, 세션 쿠키 발급 | `401 Unauthorized`                    |
 | 추가 | 로그아웃    | `POST` | `/logout`       | 필요  | 세션을 무효화해 로그인 상태를 해제한다.                     | 없음                          | `204 No Content`              | `401 Unauthorized`                    |
 | 추가 | 내 정보 조회 | `GET`  | `/members/me`   | 필요  | 세션으로 식별한 로그인 회원 정보를 조회한다.                  | 없음                          | `200 OK`, 로그인 회원 정보           | `401 Unauthorized`                    |
-| 변경 | 예약 생성   | `POST` | `/reservations` | 필요  | 요청의 `name` 대신 로그인 회원을 예약자로 사용한다.           | `date`, `timeId`, `themeId` | `201 Created`, 생성된 예약 정보      | `401 Unauthorized`, `400 Bad Request` |
-| 변경 | 내 예약 조회 | `GET`  | `/reservations` | 필요  | 기존 `name` 쿼리 파라미터 대신 로그인 회원 기준으로 예약을 조회한다. | 없음                          | `200 OK`, 로그인 회원의 예약 목록       | `401 Unauthorized`                    |
+| 변경 | 예약 생성   | `POST` | `/reservations` | 불필요 | 요청의 `name` 대신 `memberId`를 예약자로 사용한다.          | `memberId`, `date`, `timeId`, `themeId` | `201 Created`, 생성된 예약 정보      | `400 Bad Request` |
+| 변경 | 내 예약 조회 | `GET`  | `/reservations` | 불필요 | 기존 `name` 쿼리 파라미터 대신 `memberId`로 예약을 조회한다. | 없음                          | `200 OK`, 회원의 예약 목록       | `400 Bad Request`                    |
+| 변경 | 예약 취소   | `DELETE` | `/reservations/{id}` | 불필요 | 기존 `name` 쿼리 파라미터 대신 `memberId`를 사용한다. | 없음                          | `204 No Content`       | `400 Bad Request`, `404 Not Found`                    |
+| 변경 | 예약 수정   | `PATCH` | `/reservations/{id}` | 불필요 | 기존 `name` 쿼리 파라미터 대신 `memberId`를 사용한다. | `date`, `timeId`, `themeId`                          | `200 OK`, 수정된 예약 정보       | `400 Bad Request`, `404 Not Found`                    |
 
 ### 요청/응답 예시
 
@@ -55,12 +57,15 @@
 | 로그인 요청   | `{ "email": "member@example.com", "password": "password" }`                                 |
 | 로그인 응답   | `{ "id": 1, "name": "사용자", "email": "member@example.com" }`                                 |
 | 로그아웃 응답  | 응답 본문 없음, 세션 무효화                                                                            |
-| 예약 생성 요청 | `{ "date": "2026-05-19", "timeId": 1, "themeId": 1 }`                                       |
-| 예약 응답    | `{ "id": 1, "memberName": "사용자", "date": "2026-05-19", "time": "10:00", "theme": "공포의 방" }` |
+| 예약 생성 요청 | `{ "memberId": 1, "date": "2026-05-19", "timeId": 1, "themeId": 1 }`                                       |
+| 예약 조회 요청 | `GET /reservations?memberId=1` |
+| 예약 취소 요청 | `DELETE /reservations/1?memberId=1` |
+| 예약 수정 요청 | `PATCH /reservations/1?memberId=1` |
+| 예약 응답    | `{ "id": 1, "memberId": 1, "date": "2026-05-19", "time": { ... }, "theme": { ... } }` |
 | 인증 실패 응답 | `{ "message": "로그인이 필요합니다." }`                                                              |
 
-예약 생성 시 예약자 이름은 요청으로 받지 않는다. 서버는 로그인한 사용자를 기준으로 예약자를 결정한다.
-예약 조회 시에도 기존처럼 `name` 쿼리 파라미터를 받지 않고, 로그인한 사용자의 예약만 반환한다.
+예약 생성 시 예약자 이름은 요청으로 받지 않는다. 로그인 기능이 붙기 전까지는 요청의 `memberId`를 기준으로 예약자를 결정한다.
+예약 조회, 취소, 수정 시에도 기존처럼 `name` 쿼리 파라미터를 받지 않고 `memberId` 쿼리 파라미터를 사용한다.
 
 ## 상세 설명
 
@@ -127,14 +132,13 @@ public ResponseEntity<ReservationResponse> create(
 
 ### 예약 생성 방식
 
-예약 생성 요청에서는 예약자 이름을 받지 않는다. 요청으로 받은 날짜, 시간, 테마 정보와 로그인 회원 정보를 조합해서 예약을 생성한다.
+예약 생성 요청에서는 예약자 이름을 받지 않는다. 아직 로그인을 구현하지 않았으므로 요청으로 받은 `memberId`, 날짜, 시간, 테마 정보를 조합해서 예약을 생성한다.
 
 이를 통해 다른 사람의 이름을 입력해 예약하거나, 같은 이름을 가진 사용자를 구분하지 못하는 문제를 줄인다.
 
 ### 예약 조회 방식
 
-`GET /reservations`는 로그인 회원의 식별자를 기준으로 예약 목록을 조회한다. 기존에는 `name` 쿼리 파라미터로 사용자를 구분했지만, 변경 후에는 요청 파라미터가 아니라 인증된 사용자 정보로 조회
-조건을 결정한다.
+`GET /reservations`는 `memberId` 쿼리 파라미터를 기준으로 예약 목록을 조회한다. 기존에는 `name` 쿼리 파라미터로 사용자를 구분했지만, 변경 후에는 회원 이름이 아니라 회원 식별자를 조회 조건으로 사용한다.
 
 ### 예외 응답 방식
 
@@ -160,8 +164,9 @@ public ResponseEntity<ReservationResponse> create(
 - [ ] 세션을 무효화하는 로그아웃 기능을 구현한다.
 - [ ] `@LoginMember` 어노테이션을 만든다.
 - [ ] 로그인 회원 정보를 컨트롤러 파라미터로 주입하는 `LoginMemberArgumentResolver`를 구현한다.
-- [ ] 예약 생성 시 요청의 이름 대신 로그인 회원을 사용하도록 변경한다.
-- [ ] 예약 조회 시 이름 쿼리 파라미터 대신 로그인 회원을 사용하도록 변경한다.
+- [x] 예약 생성 시 요청의 이름 대신 회원 id를 사용하도록 변경한다.
+- [x] 예약 조회 시 이름 쿼리 파라미터 대신 회원 id를 사용하도록 변경한다.
+- [x] 예약 취소/수정 시 이름 쿼리 파라미터 대신 회원 id를 사용하도록 변경한다.
 - [ ] 인증 실패 응답을 공통 예외 처리로 정리한다.
 - [x] 회원가입 성공/실패 테스트를 작성한다.
 - [ ] 로그인 성공/실패 테스트를 작성한다.

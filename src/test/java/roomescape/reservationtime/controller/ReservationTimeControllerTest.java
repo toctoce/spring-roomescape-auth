@@ -29,7 +29,7 @@ class ReservationTimeControllerTest {
                 .contentType("application/json")
                 .body("""
                         {
-                          "name": "봉구스",
+                          "memberId": 1,
                           "date": "2099-05-06",
                           "timeId": 1,
                           "themeId": 1

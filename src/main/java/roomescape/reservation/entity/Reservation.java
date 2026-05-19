@@ -8,30 +8,27 @@ import roomescape.theme.entity.Theme;
 public class Reservation {
 
     private final Long id;
-    private final String name;
+    private final Long memberId;
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
 
-    private Reservation(String name, LocalDate date, ReservationTime time, Theme theme) {
-        this(null, name, date, time, theme);
+    private Reservation(Long memberId, LocalDate date, ReservationTime time, Theme theme) {
+        this(null, memberId, date, time, theme);
     }
 
-    private Reservation(Long id, String name, LocalDate date, ReservationTime time, Theme theme) {
-        validate(name, date, time, theme);
+    private Reservation(Long id, Long memberId, LocalDate date, ReservationTime time, Theme theme) {
+        validate(memberId, date, time, theme);
         this.id = id;
-        this.name = name;
+        this.memberId = memberId;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
-    private void validate(String name, LocalDate date, ReservationTime time, Theme theme) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("예약자 이름은 필수입니다.");
-        }
-        if (name.length() > 10) {
-            throw new IllegalArgumentException("예약자 이름은 10자 이하여야 합니다.");
+    private void validate(Long memberId, LocalDate date, ReservationTime time, Theme theme) {
+        if (memberId == null) {
+            throw new IllegalArgumentException("예약자 회원 id는 필수입니다.");
         }
         if (date == null) {
             throw new IllegalArgumentException("예약 날짜는 필수입니다.");
@@ -44,24 +41,24 @@ public class Reservation {
         }
     }
 
-    public static Reservation of(String name, LocalDate date, ReservationTime time, Theme theme) {
-        return new Reservation(name, date, time, theme);
+    public static Reservation of(Long memberId, LocalDate date, ReservationTime time, Theme theme) {
+        return new Reservation(memberId, date, time, theme);
     }
 
-    public static Reservation of(Long id, String name, LocalDate date, ReservationTime time, Theme theme) {
-        return new Reservation(id, name, date, time, theme);
+    public static Reservation of(Long id, Long memberId, LocalDate date, ReservationTime time, Theme theme) {
+        return new Reservation(id, memberId, date, time, theme);
     }
 
     public static Reservation toEntity(Reservation reservation, Long id) {
-        return new Reservation(id, reservation.name, reservation.date, reservation.time, reservation.theme);
+        return new Reservation(id, reservation.memberId, reservation.date, reservation.time, reservation.theme);
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public Long getMemberId() {
+        return memberId;
     }
 
     public LocalDate getDate() {

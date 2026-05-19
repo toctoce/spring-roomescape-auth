@@ -39,7 +39,7 @@ public class ReservationService {
     public Reservation save(ReservationRequest request) {
         Reservation reservation = createReservation(
                 null,
-                request.name(),
+                request.memberId(),
                 request.timeId(),
                 request.themeId(),
                 request.date());
@@ -57,8 +57,8 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Reservation> findByName(String name) {
-        return reservationRepository.findByName(name);
+    public List<Reservation> findByMemberId(Long memberId) {
+        return reservationRepository.findByMemberId(memberId);
     }
 
     @Transactional
@@ -67,25 +67,25 @@ public class ReservationService {
     }
 
     @Transactional
-    public void cancelByIdAndName(Long id, String name) {
+    public void cancelByIdAndMemberId(Long id, Long memberId) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ReservationNotFoundException(id));
-        validateOwner(reservation, name);
+        validateOwner(reservation, memberId);
         reservationRepository.deleteById(id);
     }
 
     @Transactional
-    public Reservation updateByIdAndName(Long id, String name, ReservationUpdateRequest request) {
+    public Reservation updateByIdAndMemberId(Long id, Long memberId, ReservationUpdateRequest request) {
         if (request.isEmpty()) {
             throw new IllegalArgumentException("변경할 예약 정보가 없습니다.");
         }
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ReservationNotFoundException(id));
-        validateOwner(reservation, name);
+        validateOwner(reservation, memberId);
 
         Reservation updatedReservation = createReservation(
                 id,
-                name,
+                memberId,
                 request.timeId(),
                 request.themeId(),
                 request.date());
@@ -93,13 +93,13 @@ public class ReservationService {
         return reservationRepository.update(updatedReservation);
     }
 
-    private void validateOwner(Reservation reservation, String name) {
-        if (!reservation.getName().equals(name)) {
+    private void validateOwner(Reservation reservation, Long memberId) {
+        if (!reservation.getMemberId().equals(memberId)) {
             throw new ReservationAccessDeniedException();
         }
     }
 
-    private Reservation createReservation(Long id, String name, Long timeId, Long themeId, LocalDate date) {
+    private Reservation createReservation(Long id, Long memberId, Long timeId, Long themeId, LocalDate date) {
         ReservationTime reservationTime = reservationTimeRepository.findById(timeId)
                 .orElseThrow(() -> new ReservationTimeNotFoundException(timeId));
         Theme theme = themeRepository.findById(themeId)
@@ -117,7 +117,7 @@ public class ReservationService {
 
         return Reservation.of(
                 id,
-                name,
+                memberId,
                 date,
                 reservationTime,
                 theme);

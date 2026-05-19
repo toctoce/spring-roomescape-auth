@@ -2,6 +2,9 @@ DELETE
 FROM reservation;
 
 DELETE
+FROM members;
+
+DELETE
 FROM reservation_time;
 
 ALTER TABLE reservation_time
@@ -35,32 +38,52 @@ VALUES ('테마1', '테마1 설명', 'https://example.com/themes/theme-1.png', 1
        ('테마14', '테마14 설명', 'https://example.com/themes/theme-14.png', 1),
        ('테마15', '테마15 설명', 'https://example.com/themes/theme-15.png', 1);
 
+ALTER TABLE members
+    ALTER COLUMN id RESTART WITH 1;
+
+INSERT INTO members (name, email, password)
+VALUES ('예약자1', 'member1@example.com', 'password'),
+       ('예약자2', 'member2@example.com', 'password'),
+       ('예약자3', 'member3@example.com', 'password'),
+       ('예약자4', 'member4@example.com', 'password'),
+       ('예약자5', 'member5@example.com', 'password'),
+       ('예약자6', 'member6@example.com', 'password'),
+       ('예약자7', 'member7@example.com', 'password'),
+       ('예약자8', 'member8@example.com', 'password'),
+       ('예약자9', 'member9@example.com', 'password'),
+       ('예약자10', 'member10@example.com', 'password'),
+       ('예약자11', 'member11@example.com', 'password'),
+       ('예약자12', 'member12@example.com', 'password'),
+       ('예약자13', 'member13@example.com', 'password'),
+       ('예약자14', 'member14@example.com', 'password'),
+       ('예약자15', 'member15@example.com', 'password');
+
 ALTER TABLE reservation
     ALTER COLUMN id RESTART WITH 1;
 
-INSERT INTO reservation (name, date, time_id, theme_id)
+INSERT INTO reservation (member_id, date, time_id, theme_id)
 VALUES
     -- 테마1: 1개
-    ('예약자1', DATEADD('DAY', -1, CURRENT_DATE), 1, 1),
+    (1, DATEADD('DAY', -1, CURRENT_DATE), 1, 1),
 
     -- 테마2: 2개
-    ('예약자2', DATEADD('DAY', -1, CURRENT_DATE), 1, 2),
-    ('예약자3', DATEADD('DAY', -1, CURRENT_DATE), 2, 2),
+    (2, DATEADD('DAY', -1, CURRENT_DATE), 1, 2),
+    (3, DATEADD('DAY', -1, CURRENT_DATE), 2, 2),
 
     -- 테마3: 3개
-    ('예약자4', DATEADD('DAY', -1, CURRENT_DATE), 1, 3),
-    ('예약자5', DATEADD('DAY', -1, CURRENT_DATE), 2, 3),
-    ('예약자6', DATEADD('DAY', -1, CURRENT_DATE), 3, 3),
+    (4, DATEADD('DAY', -1, CURRENT_DATE), 1, 3),
+    (5, DATEADD('DAY', -1, CURRENT_DATE), 2, 3),
+    (6, DATEADD('DAY', -1, CURRENT_DATE), 3, 3),
 
     -- 테마4: 4개
-    ('예약자7', DATEADD('DAY', -1, CURRENT_DATE), 1, 4),
-    ('예약자8', DATEADD('DAY', -1, CURRENT_DATE), 2, 4),
-    ('예약자9', DATEADD('DAY', -1, CURRENT_DATE), 3, 4),
-    ('예약자10', CURRENT_DATE, 1, 4),
+    (7, DATEADD('DAY', -1, CURRENT_DATE), 1, 4),
+    (8, DATEADD('DAY', -1, CURRENT_DATE), 2, 4),
+    (9, DATEADD('DAY', -1, CURRENT_DATE), 3, 4),
+    (10, CURRENT_DATE, 1, 4),
 
     -- 테마5: 5개
-    ('예약자11', DATEADD('DAY', -1, CURRENT_DATE), 1, 5),
-    ('예약자12', DATEADD('DAY', -1, CURRENT_DATE), 2, 5),
-    ('예약자13', DATEADD('DAY', -1, CURRENT_DATE), 3, 5),
-    ('예약자14', CURRENT_DATE, 1, 5),
-    ('예약자15', CURRENT_DATE, 2, 5);
+    (11, DATEADD('DAY', -1, CURRENT_DATE), 1, 5),
+    (12, DATEADD('DAY', -1, CURRENT_DATE), 2, 5),
+    (13, DATEADD('DAY', -1, CURRENT_DATE), 3, 5),
+    (14, CURRENT_DATE, 1, 5),
+    (15, CURRENT_DATE, 2, 5);

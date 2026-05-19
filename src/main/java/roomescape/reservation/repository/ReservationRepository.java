@@ -15,7 +15,7 @@ public interface ReservationRepository {
 
     List<Reservation> findAll();
 
-    List<Reservation> findByName(String name);
+    List<Reservation> findByMemberId(Long memberId);
 
     Reservation update(Reservation reservation);
 

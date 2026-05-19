@@ -8,6 +8,10 @@ VALUES ('10:00'),
        ('13:00'),
        ('16:00');
 
-INSERT INTO reservation (name, date, time_id, theme_id)
-VALUES ('봉구스', '2026-05-06', 1, 1),
-       ('밀란', '2026-05-07', 2, 2);
+INSERT INTO members (name, email, password)
+VALUES ('봉구스', 'bongus@example.com', 'password'),
+       ('밀란', 'milan@example.com', 'password');
+
+INSERT INTO reservation (member_id, date, time_id, theme_id)
+VALUES (1, '2026-05-06', 1, 1),
+       (2, '2026-05-07', 2, 2);

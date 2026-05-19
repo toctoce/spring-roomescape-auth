@@ -93,7 +93,7 @@ class JdbcThemeRepositoryTest {
         ReservationTime savedReservationTime = reservationTimeRepository.save(reservationTime);
         Theme theme = Theme.of("테마", "테마 설명", "https://example.com/theme.png", Duration.ofHours(0));
         Theme savedTheme = themeRepository.save(theme);
-        Reservation reservation = Reservation.of("밀란", LocalDate.of(2099, 5, 6), savedReservationTime, savedTheme);
+        Reservation reservation = Reservation.of(2L, LocalDate.of(2099, 5, 6), savedReservationTime, savedTheme);
         reservationRepository.save(reservation);
 
         assertThatThrownBy(() -> themeRepository.deleteById(savedTheme.getId()))
