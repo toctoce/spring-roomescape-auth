@@ -10,9 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import roomescape.auth.support.LoginMember;
+import roomescape.member.entity.Member;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservation.payload.ReservationResponse;
@@ -31,15 +32,16 @@ public class ReservationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ReservationResponse postReservation(@Valid @RequestBody ReservationRequest request) {
-        Reservation reservation = reservationService.save(request);
+    public ReservationResponse postReservation(@LoginMember Member member,
+                                               @Valid @RequestBody ReservationRequest request) {
+        Reservation reservation = reservationService.save(member.getId(), request);
         return ReservationResponse.from(reservation);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ReservationResponse> getReservations(@RequestParam Long memberId) {
-        return reservationService.findByMemberId(memberId)
+    public List<ReservationResponse> getReservations(@LoginMember Member member) {
+        return reservationService.findByMemberId(member.getId())
                 .stream()
                 .map(ReservationResponse::from)
                 .toList();
@@ -47,16 +49,16 @@ public class ReservationController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteReservation(@PathVariable Long id, @RequestParam Long memberId) {
-        reservationService.cancelByIdAndMemberId(id, memberId);
+    public void deleteReservation(@LoginMember Member member, @PathVariable Long id) {
+        reservationService.cancelByIdAndMemberId(id, member.getId());
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ReservationResponse updateReservation(@PathVariable Long id,
-                                                 @RequestParam Long memberId,
+    public ReservationResponse updateReservation(@LoginMember Member member,
+                                                 @PathVariable Long id,
                                                  @Valid @RequestBody ReservationUpdateRequest request) {
-        Reservation reservation = reservationService.updateByIdAndMemberId(id, memberId, request);
+        Reservation reservation = reservationService.updateByIdAndMemberId(id, member.getId(), request);
         return ReservationResponse.from(reservation);
     }
 }

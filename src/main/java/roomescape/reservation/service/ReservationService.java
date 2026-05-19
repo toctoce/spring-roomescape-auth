@@ -36,10 +36,10 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation save(ReservationRequest request) {
+    public Reservation save(Long memberId, ReservationRequest request) {
         Reservation reservation = createReservation(
                 null,
-                request.memberId(),
+                memberId,
                 request.timeId(),
                 request.themeId(),
                 request.date());
@@ -83,12 +83,16 @@ public class ReservationService {
                 .orElseThrow(() -> new ReservationNotFoundException(id));
         validateOwner(reservation, memberId);
 
+        LocalDate date = request.date() == null ? reservation.getDate() : request.date();
+        Long timeId = request.timeId() == null ? reservation.getTime().getId() : request.timeId();
+        Long themeId = request.themeId() == null ? reservation.getTheme().getId() : request.themeId();
+
         Reservation updatedReservation = createReservation(
                 id,
                 memberId,
-                request.timeId(),
-                request.themeId(),
-                request.date());
+                timeId,
+                themeId,
+                date);
 
         return reservationRepository.update(updatedReservation);
     }

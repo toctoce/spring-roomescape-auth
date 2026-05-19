@@ -10,7 +10,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import roomescape.auth.exception.AuthenticationException;
+import roomescape.auth.exception.LoginRequiredException;
 import roomescape.member.entity.Member;
 import roomescape.member.service.MemberService;
 
@@ -25,8 +25,10 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(LoginMember.class)
-                && parameter.getParameterType().equals(LoginMemberInfo.class);
+        boolean hasAnnotation = parameter.hasParameterAnnotation(LoginMember.class);
+        boolean isMemberType = Member.class.isAssignableFrom(parameter.getParameterType());
+
+        return hasAnnotation && isMemberType;
     }
 
     @Override
@@ -36,20 +38,19 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
                                   WebDataBinderFactory binderFactory) {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         if (request == null) {
-            throw AuthenticationException.loginRequired();
+            throw new LoginRequiredException();
         }
 
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw AuthenticationException.loginRequired();
+            throw new LoginRequiredException();
         }
 
         Object memberId = session.getAttribute(LOGIN_MEMBER_ID);
         if (!(memberId instanceof Long id)) {
-            throw AuthenticationException.loginRequired();
+            throw new LoginRequiredException();
         }
 
-        Member member = memberService.findById(id);
-        return LoginMemberInfo.from(member);
+        return memberService.findById(id);
     }
 }

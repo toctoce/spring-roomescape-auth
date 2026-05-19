@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.auth.support.LoginMember;
-import roomescape.auth.support.LoginMemberInfo;
 import roomescape.member.entity.Member;
 import roomescape.member.payload.MemberCreateRequest;
 import roomescape.member.payload.MemberResponse;
@@ -34,7 +33,7 @@ public class MemberController {
 
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
-    public MemberResponse getMe(@LoginMember LoginMemberInfo loginMember) {
-        return new MemberResponse(loginMember.id(), loginMember.name(), loginMember.email());
+    public MemberResponse getMe(@LoginMember Member member) {
+        return MemberResponse.from(member);
     }
 }

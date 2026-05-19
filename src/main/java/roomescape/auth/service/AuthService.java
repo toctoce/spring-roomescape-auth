@@ -2,7 +2,7 @@ package roomescape.auth.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import roomescape.auth.exception.AuthenticationException;
+import roomescape.auth.exception.LoginFailedException;
 import roomescape.auth.payload.LoginRequest;
 import roomescape.member.entity.Member;
 import roomescape.member.repository.MemberRepository;
@@ -19,14 +19,14 @@ public class AuthService {
     @Transactional(readOnly = true)
     public Member login(LoginRequest request) {
         Member member = memberRepository.findByEmail(request.email())
-                .orElseThrow(AuthenticationException::new);
+                .orElseThrow(LoginFailedException::new);
         validatePassword(member, request.password());
         return member;
     }
 
     private void validatePassword(Member member, String password) {
         if (!member.getPassword().equals(password)) {
-            throw new AuthenticationException();
+            throw new LoginFailedException();
         }
     }
 }
