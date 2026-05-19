@@ -20,7 +20,6 @@ import roomescape.theme.exception.ThemeResourceInUseException;
 @Repository
 public class JdbcThemeRepository implements ThemeRepository {
 
-    // TODO: 요구사항에 따라 theme의 runtime은 고정한다.
     private static final Long RUNTIME = 1L;
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
