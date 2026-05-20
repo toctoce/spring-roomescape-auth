@@ -2,13 +2,17 @@
 
 ## 설명
 
-인증/인가에 대해 배운다. `ArgumentResolver`를 사용해서 로그인 기능을 구현한다.
-[기존 예약 서비스](https://github.com/toctoce/spring-roomescape-member)는 예약자 이름을 요청으로 직접 받아 사용자를 구분했다. 이번 단계에서는 웹 사용자가 로그인한 뒤
-예약 서비스를 이용하도록 변경하고, 예약 생성과 조회가 로그인 사용자를 기준으로 동작하게 만든다.
+인증/인가에 대해 배운다. `ArgumentResolver`를 사용해서 로그인 사용자를 컨트롤러 파라미터로 전달한다.
 
-## 요구 사항
+[기존 예약 서비스](https://github.com/toctoce/spring-roomescape-member)는 예약자 이름을 요청으로 직접 받아 사용자를 구분했다. 이번 미션에서는 웹과 모바일 요청에서 로그인한 사용자를 식별하고, 로그인 사용자를 기준으로 예약을 관리한다.
 
-### 로그인
+---
+
+## 1단계: 웹에서 로그인하기
+
+### 요구 사항
+
+#### 로그인
 
 - [x] 사용자는 로그인할 수 있다.
 - [x] 로그인에 성공하면 이후 요청에서 같은 사용자를 식별할 수 있어야 한다.
@@ -16,144 +20,126 @@
 - [x] 사용자는 로그아웃할 수 있다.
 - [x] 로그아웃한 사용자는 이후 인증이 필요한 기능을 사용할 수 없다.
 
-### 예약 생성
+#### 예약 생성
 
 - [x] 로그인한 사용자는 예약을 생성할 수 있다.
 - [x] 예약 생성 시 요청으로 받은 이름이 아니라 로그인한 사용자를 기준으로 예약을 만든다.
 - [x] 로그인하지 않은 사용자는 예약을 생성할 수 없다.
 
-### 예약 조회
+#### 예약 조회
 
 - [x] 로그인한 사용자는 자신의 예약을 조회할 수 있다.
 - [x] 로그인하지 않은 사용자는 인증이 필요한 예약 조회 기능을 사용할 수 없다.
 
-### 인증 공통 처리
+#### 인증 공통 처리
 
 - [x] 로그인 여부 확인 로직을 컨트롤러마다 반복하지 않는다.
 - [x] 인증이 필요한 API와 필요하지 않은 API를 구분한다.
 - [x] 인증 실패 시 일관된 응답을 반환한다.
 
-## API 명세
+### API 명세
 
-이번 단계에서 새로 추가하거나 변경하는 API만 작성한다.
+1단계에서 새로 추가하거나 변경한 API만 작성한다.
 
-| 구분 | 기능      | Method | URL             | 인증  | 변경 내용                                      | Request Body                | 성공 응답                         | 실패 응답                                 |
-|----|---------|--------|-----------------|-----|--------------------------------------------|-----------------------------|-------------------------------|---------------------------------------|
-| 추가 | 회원가입    | `POST` | `/members`      | 불필요 | 사용자가 로그인에 사용할 회원 정보를 생성한다.                 | `name`, `email`, `password` | `201 Created`, 생성된 회원 정보      | `400 Bad Request`, `409 Conflict`     |
-| 추가 | 로그인     | `POST` | `/login`        | 불필요 | 로그인 성공 시 세션에 회원 정보를 저장한다.                  | `email`, `password`         | `200 OK`, 로그인 회원 정보, 세션 쿠키 발급 | `401 Unauthorized`                    |
-| 추가 | 로그아웃    | `POST` | `/logout`       | 필요  | 세션을 무효화해 로그인 상태를 해제한다.                     | 없음                          | `204 No Content`              | `401 Unauthorized`                    |
-| 추가 | 내 정보 조회 | `GET`  | `/members/me`   | 필요  | 세션으로 식별한 로그인 회원 정보를 조회한다.                  | 없음                          | `200 OK`, 로그인 회원 정보           | `401 Unauthorized`                    |
-| 변경 | 예약 생성   | `POST` | `/reservations` | 불필요 | 요청의 `name` 대신 `memberId`를 예약자로 사용한다.          | `memberId`, `date`, `timeId`, `themeId` | `201 Created`, 생성된 예약 정보      | `400 Bad Request` |
-| 변경 | 내 예약 조회 | `GET`  | `/reservations` | 불필요 | 기존 `name` 쿼리 파라미터 대신 `memberId`로 예약을 조회한다. | 없음                          | `200 OK`, 회원의 예약 목록       | `400 Bad Request`                    |
-| 변경 | 예약 취소   | `DELETE` | `/reservations/{id}` | 불필요 | 기존 `name` 쿼리 파라미터 대신 `memberId`를 사용한다. | 없음                          | `204 No Content`       | `400 Bad Request`, `404 Not Found`                    |
-| 변경 | 예약 수정   | `PATCH` | `/reservations/{id}` | 불필요 | 기존 `name` 쿼리 파라미터 대신 `memberId`를 사용한다. | `date`, `timeId`, `themeId`                          | `200 OK`, 수정된 예약 정보       | `400 Bad Request`, `404 Not Found`                    |
+| 구분 | 기능 | Method | URL | 인증 | 설명 | Request Body | 성공 응답 | 실패 응답 |
+|----|----|----|----|----|----|----|----|----|
+| 추가 | 회원가입 | `POST` | `/members` | 불필요 | 로그인에 사용할 회원 생성 | `name`, `email`, `password` | `201 Created`, 회원 정보 | `400 Bad Request`, `409 Conflict` |
+| 추가 | 웹 로그인 | `POST` | `/login` | 불필요 | 세션에 로그인 회원 id 저장 | `email`, `password` | `200 OK`, 회원 정보, `JSESSIONID` 쿠키 | `401 Unauthorized` |
+| 추가 | 로그아웃 | `POST` | `/logout` | 필요 | 세션 무효화 | 없음 | `204 No Content` | `401 Unauthorized` |
+| 추가 | 내 정보 조회 | `GET` | `/members/me` | 필요 | 로그인 회원 정보 조회 | 없음 | `200 OK`, 회원 정보 | `401 Unauthorized` |
+| 변경 | 예약 생성 | `POST` | `/reservations` | 필요 | 로그인 회원 기준 예약 생성 | `date`, `timeId`, `themeId` | `201 Created`, 예약 정보 | `400 Bad Request`, `401 Unauthorized`, `409 Conflict`, `422 Unprocessable Entity` |
+| 변경 | 내 예약 조회 | `GET` | `/reservations` | 필요 | 로그인 회원의 예약 목록 조회 | 없음 | `200 OK`, 예약 목록 | `401 Unauthorized` |
+| 변경 | 예약 취소 | `DELETE` | `/reservations/{id}` | 필요 | 로그인 회원의 예약 취소 | 없음 | `204 No Content` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
+| 변경 | 예약 수정 | `PATCH` | `/reservations/{id}` | 필요 | 로그인 회원의 예약 수정 | `date`, `timeId`, `themeId` | `200 OK`, 예약 정보 | `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 
 ### 요청/응답 예시
 
-| 기능       | 예시                                                                                          |
-|----------|---------------------------------------------------------------------------------------------|
-| 회원가입 요청  | `{ "name": "사용자", "email": "member@example.com", "password": "password" }`                  |
-| 회원가입 응답  | `{ "id": 1, "name": "사용자", "email": "member@example.com" }`                                 |
-| 로그인 요청   | `{ "email": "member@example.com", "password": "password" }`                                 |
-| 로그인 응답   | `{ "id": 1, "name": "사용자", "email": "member@example.com" }`                                 |
-| 로그아웃 응답  | 응답 본문 없음, 세션 무효화                                                                            |
-| 예약 생성 요청 | `{ "memberId": 1, "date": "2026-05-19", "timeId": 1, "themeId": 1 }`                                       |
-| 예약 조회 요청 | `GET /reservations?memberId=1` |
-| 예약 취소 요청 | `DELETE /reservations/1?memberId=1` |
-| 예약 수정 요청 | `PATCH /reservations/1?memberId=1` |
-| 예약 응답    | `{ "id": 1, "memberId": 1, "date": "2026-05-19", "time": { ... }, "theme": { ... } }` |
-| 인증 실패 응답 | `{ "message": "로그인이 필요합니다." }`                                                              |
+| 기능 | 예시 |
+|----|----|
+| 회원가입 요청 | `{ "name": "사용자", "email": "member@example.com", "password": "password" }` |
+| 회원가입 응답 | `{ "id": 1, "name": "사용자", "email": "member@example.com" }` |
+| 웹 로그인 요청 | `{ "email": "member@example.com", "password": "password" }` |
+| 웹 로그인 응답 | `{ "id": 1, "name": "사용자", "email": "member@example.com" }`, `JSESSIONID` 쿠키 |
+| 예약 생성 요청 | `{ "date": "2026-05-20", "timeId": 1, "themeId": 1 }` |
+| 예약 조회 요청 | `GET /reservations` |
+| 예약 취소 요청 | `DELETE /reservations/1` |
+| 예약 수정 요청 | `PATCH /reservations/1` |
+| 예약 응답 | `{ "id": 1, "memberId": 1, "date": "2026-05-20", "time": { ... }, "theme": { ... } }` |
+| 인증 실패 응답 | `{ "message": "로그인이 필요합니다." }` |
 
-예약 생성 시 예약자 이름은 요청으로 받지 않는다. 로그인 기능이 붙기 전까지는 요청의 `memberId`를 기준으로 예약자를 결정한다.
-예약 조회, 취소, 수정 시에도 기존처럼 `name` 쿼리 파라미터를 받지 않고 `memberId` 쿼리 파라미터를 사용한다.
+### 상세 설명
 
-## 상세 설명
+#### 로그인 상태 유지 방식
 
-### 회원가입 방식
+- 웹은 세션 사용
+- 로그인 성공 시 `HttpSession`에 로그인 회원 id 저장
+- 세션 키: `loginMemberId`
+- 브라우저는 이후 요청마다 `JSESSIONID` 쿠키 전송
+- 서버는 세션의 `loginMemberId`로 로그인 사용자 식별
+- 로그아웃 시 세션 무효화
 
-회원가입 요청으로 이름, 이메일, 비밀번호를 입력받아 회원을 생성한다. 이메일은 로그인 ID로 사용하므로 중복될 수 없다.
-
-회원가입 응답에는 비밀번호를 포함하지 않는다. 비밀번호는 그대로 응답하거나 로그에 남기지 않고, 저장 방식은 별도 컴포넌트로 분리해 변경 가능하게 둔다.
-
-### 로그인 상태 유지 방식
-
-로그인에 성공하면 서버는 `HttpSession`에 로그인한 회원의 식별자를 저장한다. 브라우저는 이후 요청마다 세션 쿠키를 함께 전송하고, 서버는 세션에 저장된 회원 식별자를 통해 같은 사용자를 식별한다.
-
-세션에는 최소한의 식별 정보만 저장한다.
-
-- `memberId`: 로그인한 회원의 식별자
-
-비밀번호 같은 민감한 정보는 세션이나 응답에 포함하지 않는다.
-
-로그아웃 요청이 들어오면 서버는 현재 세션을 무효화한다. 이후 같은 사용자가 인증이 필요한 API를 호출하면 유효한 로그인 세션이 없으므로 `401 Unauthorized`를 반환한다.
-
-### 인증이 필요한 API 구분
+#### 인증이 필요한 API 구분
 
 인증이 필요한 API는 컨트롤러 메서드의 `@LoginMember` 파라미터로 구분한다.
 
-인증이 필요한 API 예시는 다음과 같다.
+인증이 필요한 API:
 
 - `POST /reservations`
 - `GET /reservations`
+- `DELETE /reservations/{id}`
+- `PATCH /reservations/{id}`
 - `GET /members/me`
 - `POST /logout`
 
-로그인 API, 회원가입 API, 정적 리소스, 예약 시간 및 테마 조회처럼 로그인하지 않아도 사용할 수 있는 API는 `@LoginMember` 파라미터를 사용하지 않는다.
+인증이 필요하지 않은 API:
 
-### 인증 공통 처리 위치
+- `POST /members`
+- `POST /login`
+- 정적 리소스
+- 예약 시간 조회
+- 테마 조회
 
-인증 처리는 컨트롤러에 반복해서 작성하지 않는다.
+#### 인증 공통 처리 위치
 
-1. 인증이 필요한 컨트롤러 메서드에 `@LoginMember LoginMember` 파라미터를 선언한다.
-2. `LoginMemberArgumentResolver`가 현재 요청의 세션에서 로그인 회원 식별자를 찾는다.
-3. 세션이 없거나 로그인 회원 식별자가 없으면 인증 실패 예외를 던진다.
-4. 세션에 로그인 회원 식별자가 있으면 로그인 회원 정보를 조회해 컨트롤러 파라미터로 전달한다.
-
-이 방식으로 인증 실패 처리가 한 곳에 모이고, 컨트롤러는 인증 여부를 직접 검사하지 않아도 된다.
-
-### 로그인 사용자 전달 방식
-
-컨트롤러는 `HttpServletRequest`나 세션을 직접 다루지 않는다.
-
-대신 `@LoginMember` 어노테이션과 `HandlerMethodArgumentResolver`를 사용한다.
+- `ArgumentResolver` 사용
+- 컨트롤러 파라미터에 `@LoginMember Member member` 선언
+- `LoginMemberArgumentResolver`가 세션에서 `loginMemberId` 조회
+- 세션이 없거나 `loginMemberId`가 없으면 `401 Unauthorized`
+- 컨트롤러는 세션을 직접 다루지 않음
 
 ```java
-
 @PostMapping("/reservations")
-public ResponseEntity<ReservationResponse> create(
-        @LoginMember LoginMember loginMember,
-        @RequestBody ReservationCreateRequest request
+public ReservationResponse create(
+        @LoginMember Member member,
+        @RequestBody ReservationRequest request
 ) {
-    ...
+    Reservation reservation = reservationService.save(member.getId(), request);
+    return ReservationResponse.from(reservation);
 }
 ```
 
-`LoginMemberArgumentResolver`는 세션에 저장된 회원 식별자를 읽고, 서비스 또는 저장소를 통해 로그인 사용자 정보를 조회한 뒤 `LoginMember` 객체로 변환한다.
+#### 예약 처리 방식
 
-### 예약 생성 방식
+- 예약 생성 요청에서 예약자 이름을 받지 않음
+- 예약 생성 요청에서 회원 id도 받지 않음
+- 로그인 회원 id로 예약 생성
+- 내 예약 조회도 로그인 회원 id 기준
+- 예약 수정/취소도 로그인 회원의 예약인지 확인
 
-예약 생성 요청에서는 예약자 이름을 받지 않는다. 아직 로그인을 구현하지 않았으므로 요청으로 받은 `memberId`, 날짜, 시간, 테마 정보를 조합해서 예약을 생성한다.
-
-이를 통해 다른 사람의 이름을 입력해 예약하거나, 같은 이름을 가진 사용자를 구분하지 못하는 문제를 줄인다.
-
-### 예약 조회 방식
-
-`GET /reservations`는 `memberId` 쿼리 파라미터를 기준으로 예약 목록을 조회한다. 기존에는 `name` 쿼리 파라미터로 사용자를 구분했지만, 변경 후에는 회원 이름이 아니라 회원 식별자를 조회 조건으로 사용한다.
-
-### 예외 응답 방식
-
-인증 실패와 잘못된 요청은 구분한다.
+#### 인증 실패 응답 방식
 
 - 인증 정보 없음: `401 Unauthorized`
 - 세션 만료 또는 유효하지 않은 세션: `401 Unauthorized`
 - 로그인 실패: `401 Unauthorized`
-- 중복 이메일로 회원가입: `409 Conflict`
-- 요청 값 검증 실패: `400 Bad Request`
-- 존재하지 않는 예약 시간, 테마, 회원: `404 Not Found`
+- 응답 형식 동일
 
-예외 응답은 공통 예외 핸들러에서 JSON 형식으로 반환한다.
+```json
+{
+  "message": "로그인이 필요합니다."
+}
+```
 
-## Todo
+### Todo
 
 - [x] 회원 도메인과 저장소를 추가한다.
 - [x] 회원 컨트롤러를 추가한다.
@@ -164,9 +150,9 @@ public ResponseEntity<ReservationResponse> create(
 - [x] 세션을 무효화하는 로그아웃 기능을 구현한다.
 - [x] `@LoginMember` 어노테이션을 만든다.
 - [x] 로그인 회원 정보를 컨트롤러 파라미터로 주입하는 `LoginMemberArgumentResolver`를 구현한다.
-- [x] 예약 생성 시 요청의 이름 대신 회원 id를 사용하도록 변경한다.
-- [x] 예약 조회 시 이름 쿼리 파라미터 대신 회원 id를 사용하도록 변경한다.
-- [x] 예약 취소/수정 시 이름 쿼리 파라미터 대신 회원 id를 사용하도록 변경한다.
+- [x] 예약 생성 시 요청의 이름 대신 로그인 회원 id를 사용하도록 변경한다.
+- [x] 예약 조회 시 이름 쿼리 파라미터 대신 로그인 회원 id를 사용하도록 변경한다.
+- [x] 예약 취소/수정 시 로그인 회원 id를 사용하도록 변경한다.
 - [x] 인증 실패 응답을 공통 예외 처리로 정리한다.
 - [x] 회원가입 성공/실패 테스트를 작성한다.
 - [x] 로그인 성공/실패 테스트를 작성한다.
@@ -175,3 +161,220 @@ public ResponseEntity<ReservationResponse> create(
 - [x] 비로그인 사용자의 예약 생성 실패 테스트를 작성한다.
 - [x] 로그인 사용자의 예약 생성 테스트를 작성한다.
 - [x] 로그인 사용자의 내 예약 조회 테스트를 작성한다.
+
+---
+
+## 2단계: 모바일 앱 요청 인증하기
+
+### 요구 사항
+
+#### 모바일 로그인
+
+- [x] 모바일 앱 사용자는 로그인할 수 있다.
+- [x] 로그인 성공 후 모바일 앱이 이후 요청에 사용할 인증 정보를 받을 수 있다.
+- [x] 인증 정보는 이후 요청마다 서버가 사용자를 식별할 수 있는 형태여야 한다.
+
+#### 모바일 인증 요청
+
+- [x] 모바일 앱은 인증이 필요한 API를 호출할 때 인증 정보를 함께 전달한다.
+- [x] 서버는 전달된 인증 정보를 검증한다.
+- [x] 인증 정보가 유효하면 로그인한 사용자로 요청을 처리한다.
+- [x] 인증 정보가 없거나 유효하지 않으면 요청을 거부한다.
+
+#### 웹 인증과의 관계
+
+- [x] 웹 인증 흐름과 모바일 인증 흐름의 공통점을 설명할 수 있다.
+- [x] 웹 인증 흐름과 모바일 인증 흐름의 차이점을 설명할 수 있다.
+- [x] 가능한 한 중복된 인증 로직을 줄인다.
+
+### API 명세
+
+2단계에서 새로 추가하거나 변경한 API만 작성한다.
+
+| 구분 | 기능 | Method | URL | 인증 | 설명 | Request Body | 성공 응답 | 실패 응답 |
+|----|----|----|----|----|----|----|----|----|
+| 추가 | 모바일 로그인 | `POST` | `/mobile/login` | 불필요 | 모바일 요청에 사용할 토큰 발급 | `email`, `password` | `200 OK`, 토큰 정보 | `401 Unauthorized` |
+| 변경 | 내 정보 조회 | `GET` | `/members/me` | 필요 | 세션 또는 토큰으로 로그인 회원 조회 | 없음 | `200 OK`, 회원 정보 | `401 Unauthorized` |
+| 변경 | 예약 생성 | `POST` | `/reservations` | 필요 | 세션 또는 토큰으로 로그인 회원 식별 | `date`, `timeId`, `themeId` | `201 Created`, 예약 정보 | `401 Unauthorized` |
+| 변경 | 내 예약 조회 | `GET` | `/reservations` | 필요 | 세션 또는 토큰으로 로그인 회원의 예약 조회 | 없음 | `200 OK`, 예약 목록 | `401 Unauthorized` |
+
+### 요청/응답 예시
+
+| 기능 | 예시 |
+|----|----|
+| 모바일 로그인 요청 | `{ "email": "member@example.com", "password": "password" }` |
+| 모바일 로그인 응답 | `{ "accessToken": "uuid-token", "tokenType": "Bearer", "expiresIn": 3600 }` |
+| 모바일 인증 헤더 | `Authorization: Bearer {accessToken}` |
+| 모바일 내 정보 조회 | `GET /members/me` + `Authorization` 헤더 |
+| 모바일 예약 생성 | `POST /reservations` + `Authorization` 헤더 |
+| 인증 실패 응답 | `{ "message": "로그인이 필요합니다." }` |
+
+### 상세 설명
+
+#### 모바일 앱 요청의 인증 방식
+
+- 모바일은 토큰 방식 사용
+- 로그인 성공 시 UUID 기반 `accessToken` 발급
+- 서버는 `accessToken -> memberId, expiresAt` 정보를 저장
+- 토큰 만료 시간: 1시간
+- 만료된 토큰은 인증 실패 처리
+
+#### UUID 토큰을 선택한 이유
+
+- 토큰은 예측하기 어려운 랜덤 문자열이어야 함
+- `UUID.randomUUID()`는 학습용 랜덤 토큰으로 단순하고 충분함
+- `email/password` 인코딩은 사용하지 않음
+- Base64 인코딩은 암호화가 아니므로 토큰 유출 시 계정 정보도 함께 노출될 수 있음
+
+#### 인증 정보 전달 위치
+
+- `Authorization` 헤더 사용
+- 형식: `Authorization: Bearer {accessToken}`
+- 쿠키는 웹 세션 인증에 사용
+- 커스텀 헤더는 표준성이 낮아 선택하지 않음
+
+#### Bearer를 선택한 이유
+
+- `Bearer`는 토큰 소유자를 인증된 사용자로 보는 토큰 전달 방식
+- 로그인 후 발급받은 토큰을 보내는 구조에 적합
+- `Basic`은 매 요청마다 `email:password`를 보내는 방식이라 이번 구조와 맞지 않음
+
+#### 웹 인증 흐름과 모바일 인증 흐름의 통합 방식
+
+- 컨트롤러는 웹/모바일을 구분하지 않음
+- 인증이 필요한 컨트롤러는 그대로 `@LoginMember Member member` 사용
+- `LoginMemberArgumentResolver`가 세션과 토큰을 모두 확인
+- 세션에 `loginMemberId`가 있으면 웹 사용자로 식별
+- 세션이 없으면 `Authorization` 헤더의 Bearer 토큰으로 모바일 사용자 식별
+
+#### 웹 인증과 모바일 인증 비교
+
+| 구분 | 웹 | 모바일 |
+|----|----|----|
+| 인증 방식 | 세션 | 토큰 |
+| 인증 정보 전달 위치 | 쿠키 `JSESSIONID` | `Authorization` 헤더 |
+| 인증 정보 형식 | 세션 id | `Bearer {accessToken}` |
+| 로그인 성공 응답 | 회원 정보 + 세션 쿠키 | 토큰 정보 |
+| 만료/로그아웃 | 세션 무효화 | 토큰 만료 시간 |
+
+공통점:
+
+- 이메일과 비밀번호로 로그인
+- 인증 정보에서 회원 id를 찾음
+- `@LoginMember Member`로 로그인 사용자 전달
+- 인증 실패 시 `401 Unauthorized`
+- 응답 형식 동일
+
+차이점:
+
+- 웹은 브라우저가 쿠키를 자동 전송
+- 모바일은 앱이 토큰을 저장하고 `Authorization` 헤더에 직접 추가
+- 웹 로그아웃은 세션 무효화
+- 모바일은 현재 토큰 만료 시간에 맡김
+
+#### 인증 실패 응답 방식
+
+- 웹과 모바일 모두 동일한 응답 사용
+- 인증 정보가 없거나 유효하지 않으면 `401 Unauthorized`
+- 클라이언트별 응답을 나누지 않음
+
+```json
+{
+  "message": "로그인이 필요합니다."
+}
+```
+
+### Postman 테스트 방법
+
+#### 1. 모바일 로그인
+
+`POST http://localhost:8080/mobile/login`
+
+Headers:
+
+```text
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "email": "milan@example.com",
+  "password": "password"
+}
+```
+
+응답:
+
+```json
+{
+  "accessToken": "uuid-token",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+```
+
+#### 2. 토큰으로 내 정보 조회
+
+`GET http://localhost:8080/members/me`
+
+Headers:
+
+```text
+Authorization: Bearer {accessToken}
+```
+
+#### 3. 토큰으로 예약 생성
+
+`POST http://localhost:8080/reservations`
+
+Headers:
+
+```text
+Content-Type: application/json
+Authorization: Bearer {accessToken}
+```
+
+Body:
+
+```json
+{
+  "date": "2099-05-20",
+  "timeId": 1,
+  "themeId": 1
+}
+```
+
+#### 4. 실패 확인
+
+토큰 없이 인증 API 호출:
+
+```text
+GET http://localhost:8080/members/me
+```
+
+잘못된 토큰으로 호출:
+
+```text
+Authorization: Bearer wrong-token
+```
+
+응답:
+
+```json
+{
+  "message": "로그인이 필요합니다."
+}
+```
+
+### Todo
+
+- [x] 모바일 로그인 API를 추가한다.
+- [x] UUID 기반 토큰을 발급한다.
+- [x] 토큰 만료 시간을 둔다.
+- [x] `Authorization: Bearer {accessToken}` 헤더에서 토큰을 읽는다.
+- [x] `LoginMemberArgumentResolver`에서 세션과 토큰을 함께 지원한다.
+- [x] 모바일 로그인 성공/실패 테스트를 작성한다.
+- [x] 모바일 토큰으로 인증 API 접근 테스트를 작성한다.
+- [x] 유효하지 않은 모바일 토큰 인증 실패 테스트를 작성한다.
