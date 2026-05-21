@@ -8,6 +8,10 @@ VALUES ('10:00'),
        ('13:00'),
        ('16:00');
 
+INSERT INTO stores (name)
+VALUES ('잠실점'),
+       ('강남점');
+
 INSERT INTO members (name, email, password)
 VALUES ('봉구스', 'bongus@example.com', 'password'),
        ('밀란', 'milan@example.com', 'password');
