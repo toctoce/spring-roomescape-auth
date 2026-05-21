@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.member.entity.Member;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.exception.PastReservationNotAllowedException;
 import roomescape.reservation.exception.ReservationAccessDeniedException;
+import roomescape.reservation.exception.ReservationAuthorizationException;
 import roomescape.reservation.exception.ReservationDuplicatedException;
 import roomescape.reservation.exception.ReservationNotFoundException;
 import roomescape.reservation.payload.ReservationRequest;
@@ -60,6 +62,12 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
+    public List<Reservation> findByManager(Member member) {
+        validateManager(member);
+        return reservationRepository.findByStoreId(member.getStoreId());
+    }
+
+    @Transactional(readOnly = true)
     public List<Reservation> findByMemberId(Long memberId) {
         return reservationRepository.findByMemberId(memberId);
     }
@@ -67,6 +75,12 @@ public class ReservationService {
     @Transactional
     public void deleteById(Long id) {
         reservationRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteByIdAndManager(Long id, Member member) {
+        Reservation reservation = findManagerReservation(id, member);
+        reservationRepository.deleteById(reservation.getId());
     }
 
     @Transactional
@@ -101,9 +115,52 @@ public class ReservationService {
         return reservationRepository.update(updatedReservation);
     }
 
+    @Transactional
+    public Reservation updateByIdAndManager(Long id, Member member, ReservationUpdateRequest request) {
+        if (request.isEmpty()) {
+            throw new IllegalArgumentException("변경할 예약 정보가 없습니다.");
+        }
+
+        Reservation reservation = findManagerReservation(id, member);
+
+        LocalDate date = request.date() == null ? reservation.getDate() : request.date();
+        Long timeId = request.timeId() == null ? reservation.getTime().getId() : request.timeId();
+        Long themeId = request.themeId() == null ? reservation.getTheme().getId() : request.themeId();
+
+        Reservation updatedReservation = createReservation(
+                id,
+                reservation.getMemberId(),
+                reservation.getStoreId(),
+                timeId,
+                themeId,
+                date);
+
+        return reservationRepository.update(updatedReservation);
+    }
+
     private void validateOwner(Reservation reservation, Long memberId) {
         if (!reservation.getMemberId().equals(memberId)) {
             throw new ReservationAccessDeniedException();
+        }
+    }
+
+    private Reservation findManagerReservation(Long id, Member member) {
+        validateManager(member);
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new ReservationNotFoundException(id));
+        validateManagerStore(reservation, member);
+        return reservation;
+    }
+
+    private void validateManager(Member member) {
+        if (!member.isManager() || member.getStoreId() == null) {
+            throw new ReservationAuthorizationException();
+        }
+    }
+
+    private void validateManagerStore(Reservation reservation, Member member) {
+        if (!reservation.getStoreId().equals(member.getStoreId())) {
+            throw new ReservationAuthorizationException();
         }
     }
 

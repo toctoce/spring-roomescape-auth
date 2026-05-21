@@ -409,6 +409,7 @@ Authorization: Bearer wrong-token
 
 | 구분 | 기능 | Method | URL | 인증 | 설명 | Request Body | 성공 응답 | 실패 응답 |
 |----|----|----|----|----|----|----|----|----|
+| 추가 | 매니저 회원가입 | `POST` | `/admin/members` | 불필요 | 특정 매장을 관리하는 매니저 회원 생성 | `name`, `email`, `password`, `storeId` | `201 Created`, 회원 정보 | `400 Bad Request`, `404 Not Found`, `409 Conflict` |
 | 변경 | 관리자 예약 조회 | `GET` | `/admin/reservations` | 필요 | 로그인한 매니저가 관리하는 매장의 예약 목록만 조회 | 없음 | `200 OK`, 예약 목록 | `401 Unauthorized`, `403 Forbidden` |
 | 추가 | 관리자 예약 변경 | `PATCH` | `/admin/reservations/{id}` | 필요 | 자기 매장 예약만 변경 | `date`, `timeId`, `themeId` | `200 OK`, 예약 정보 | `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
 | 변경 | 관리자 예약 삭제 | `DELETE` | `/admin/reservations/{id}` | 필요 | 자기 매장 예약만 삭제 | 없음 | `204 No Content` | `401 Unauthorized`, `403 Forbidden`, `404 Not Found` |
@@ -418,6 +419,7 @@ Authorization: Bearer wrong-token
 
 | 기능 | 예시 |
 |----|----|
+| 매니저 회원가입 요청 | `{ "name": "매니저", "email": "manager@example.com", "password": "password", "storeId": 1 }` |
 | 관리자 예약 조회 요청 | `GET /admin/reservations` |
 | 관리자 예약 변경 요청 | `PATCH /admin/reservations/1` |
 | 관리자 예약 변경 Body | `{ "date": "2026-05-21", "timeId": 1, "themeId": 1 }` |
@@ -442,6 +444,8 @@ Authorization: Bearer wrong-token
 - 매장 정보를 표현하는 `Store` 도메인을 추가한다.
 - 회원은 자신이 관리하는 매장 id인 `storeId`를 가진다.
 - 일반 사용자의 `storeId`는 비워둘 수 있다.
+- 일반 회원가입 API는 `role`, `storeId`를 받지 않고 항상 `USER`로 생성한다.
+- 매니저 회원가입 API는 `storeId`만 추가로 받고 서버에서 `MANAGER` 역할을 부여한다.
 - 3단계에서는 한 명의 매니저가 하나의 매장만 관리한다고 가정한다.
 
 #### 예약 접근 권한 확인 방식
@@ -475,10 +479,10 @@ Authorization: Bearer wrong-token
   - [x] 예약에 `storeId`를 추가한다.
   - [x] 예약 생성, 조회, 응답에서 매장 정보를 다룰 수 있게 변경한다.
 
-- [ ] 기존 관리자 예약 API에 인가를 적용한다.
-  - `GET /admin/reservations`는 매니저의 자기 매장 예약만 조회한다.
-  - `PATCH /admin/reservations/{id}`를 추가하고 자기 매장 예약만 변경한다.
-  - `DELETE /admin/reservations/{id}`는 자기 매장 예약만 삭제한다.
+- [x] 기존 관리자 예약 API에 인가를 적용한다.
+  - [x] `GET /admin/reservations`는 매니저의 자기 매장 예약만 조회한다.
+  - [x] `PATCH /admin/reservations/{id}`를 추가하고 자기 매장 예약만 변경한다.
+  - [x] `DELETE /admin/reservations/{id}`는 자기 매장 예약만 삭제한다.
 
 - [ ] 인증 실패와 인가 실패를 구분한다.
   - 비로그인 요청은 `401 Unauthorized`로 처리한다.

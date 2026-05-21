@@ -18,8 +18,10 @@ class AdminReservationControllerTest {
     @Test
     void 관리자가_예약_목록을_조회한다() {
         createReservation();
+        String sessionId = login();
 
         RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
                 .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(200)
@@ -31,13 +33,16 @@ class AdminReservationControllerTest {
     @Test
     void 관리자가_예약을_삭제한다() {
         Integer id = createReservation();
+        String sessionId = login();
 
         RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
                 .when().delete("/admin/reservations/" + id)
                 .then().log().all()
                 .statusCode(204);
 
         RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
                 .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(200)
@@ -46,7 +51,10 @@ class AdminReservationControllerTest {
 
     @Test
     void 관리자가_존재하지_않는_예약을_삭제하면_404를_응답한다() {
+        String sessionId = login();
+
         RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
                 .when().delete("/admin/reservations/999")
                 .then().log().all()
                 .statusCode(404)

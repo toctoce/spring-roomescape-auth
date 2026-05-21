@@ -9,9 +9,11 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.jdbc.Sql;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Sql(statements = "INSERT INTO stores (name) VALUES ('잠실점')")
 public class MissionStep3Test {
 
     @Test
@@ -66,11 +68,12 @@ public class MissionStep3Test {
         member.put("name", "브라운");
         member.put("email", "brown@example.com");
         member.put("password", "password");
+        member.put("storeId", 1);
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
                 .body(member)
-                .when().post("/members")
+                .when().post("/admin/members")
                 .then().log().all()
                 .statusCode(201);
 
@@ -101,6 +104,7 @@ public class MissionStep3Test {
                 .statusCode(201);
 
         RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
                 .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(200)
