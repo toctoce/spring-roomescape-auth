@@ -466,10 +466,10 @@ Authorization: Bearer wrong-token
 
 ### Todo
 
-- [ ] 매장과 매니저 정보를 표현한다.
-  - `Store` 도메인과 저장소를 추가한다.
-  - `Member`에 `role`, `storeId`를 추가한다.
-  - 회원 역할은 `USER`, `MANAGER`로 구분한다.
+- [x] 매장과 매니저 정보를 표현한다.
+  - [x] `Store` 도메인과 저장소를 추가한다.
+  - [x] `Member`에 `role`, `storeId`를 추가한다.
+  - [x] 회원 역할은 `USER`, `MANAGER`로 구분한다.
 
 - [ ] 예약과 매장을 연결한다.
   - 예약에 `storeId`를 추가한다.

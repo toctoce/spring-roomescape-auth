@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import roomescape.member.entity.Member;
+import roomescape.member.entity.MemberRole;
 import roomescape.member.exception.MemberDuplicatedException;
 
 @Repository
@@ -31,7 +32,9 @@ public class JdbcMemberRepository implements MemberRepository {
                     rs.getLong("id"),
                     rs.getString("name"),
                     rs.getString("email"),
-                    rs.getString("password")
+                    rs.getString("password"),
+                    MemberRole.valueOf(rs.getString("role")),
+                    rs.getObject("store_id", Long.class)
             );
 
     @Override
@@ -39,7 +42,9 @@ public class JdbcMemberRepository implements MemberRepository {
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("name", member.getName())
                 .addValue("email", member.getEmail())
-                .addValue("password", member.getPassword());
+                .addValue("password", member.getPassword())
+                .addValue("role", member.getRole().name())
+                .addValue("store_id", member.getStoreId());
         try {
             Long id = jdbcInsert.executeAndReturnKey(params).longValue();
             return Member.toEntity(member, id);
@@ -50,7 +55,7 @@ public class JdbcMemberRepository implements MemberRepository {
 
     @Override
     public Optional<Member> findById(Long id) {
-        String sql = "SELECT id, name, email, password FROM members WHERE id = :id";
+        String sql = "SELECT id, name, email, password, role, store_id FROM members WHERE id = :id";
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id);
         try {
@@ -63,7 +68,7 @@ public class JdbcMemberRepository implements MemberRepository {
 
     @Override
     public Optional<Member> findByEmail(String email) {
-        String sql = "SELECT id, name, email, password FROM members WHERE email = :email";
+        String sql = "SELECT id, name, email, password, role, store_id FROM members WHERE email = :email";
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("email", email);
         try {

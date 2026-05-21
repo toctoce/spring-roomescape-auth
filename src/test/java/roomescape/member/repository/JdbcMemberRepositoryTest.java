@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import roomescape.member.entity.Member;
+import roomescape.member.entity.MemberRole;
 import roomescape.member.exception.MemberDuplicatedException;
 
 @Sql(statements = "DELETE FROM members")
@@ -27,6 +28,20 @@ class JdbcMemberRepositoryTest {
         assertThat(savedMember.getName()).isEqualTo("사용자");
         assertThat(savedMember.getEmail()).isEqualTo("member@example.com");
         assertThat(savedMember.getPassword()).isEqualTo("password");
+        assertThat(savedMember.getRole()).isEqualTo(MemberRole.USER);
+        assertThat(savedMember.getStoreId()).isNull();
+    }
+
+    @Test
+    void 매니저_회원을_저장한다() {
+        Member member = Member.of(null, "매니저", "manager@example.com", "password", MemberRole.MANAGER, 1L);
+
+        Member savedMember = memberRepository.save(member);
+
+        assertThat(savedMember.getId()).isPositive();
+        assertThat(savedMember.getRole()).isEqualTo(MemberRole.MANAGER);
+        assertThat(savedMember.getStoreId()).isEqualTo(1L);
+        assertThat(savedMember.isManager()).isTrue();
     }
 
     @Test
@@ -39,6 +54,8 @@ class JdbcMemberRepositoryTest {
         assertThat(foundMember).isEqualTo(member);
         assertThat(foundMember.getName()).isEqualTo("사용자");
         assertThat(foundMember.getEmail()).isEqualTo("member@example.com");
+        assertThat(foundMember.getRole()).isEqualTo(MemberRole.USER);
+        assertThat(foundMember.getStoreId()).isNull();
     }
 
     @Test

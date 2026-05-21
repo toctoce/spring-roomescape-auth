@@ -12,9 +12,9 @@ INSERT INTO stores (name)
 VALUES ('잠실점'),
        ('강남점');
 
-INSERT INTO members (name, email, password)
-VALUES ('봉구스', 'bongus@example.com', 'password'),
-       ('밀란', 'milan@example.com', 'password');
+INSERT INTO members (name, email, password, role, store_id)
+VALUES ('봉구스', 'bongus@example.com', 'password', 'USER', NULL),
+       ('밀란', 'milan@example.com', 'password', 'MANAGER', 1);
 
 INSERT INTO reservation (member_id, date, time_id, theme_id)
 VALUES (1, '2026-05-06', 1, 1),
