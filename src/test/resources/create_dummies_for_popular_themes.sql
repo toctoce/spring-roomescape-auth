@@ -61,29 +61,29 @@ VALUES ('예약자1', 'member1@example.com', 'password'),
 ALTER TABLE reservation
     ALTER COLUMN id RESTART WITH 1;
 
-INSERT INTO reservation (member_id, date, time_id, theme_id)
+INSERT INTO reservation (member_id, store_id, date, time_id, theme_id)
 VALUES
     -- 테마1: 1개
-    (1, DATEADD('DAY', -1, CURRENT_DATE), 1, 1),
+    (1, 1, DATEADD('DAY', -1, CURRENT_DATE), 1, 1),
 
     -- 테마2: 2개
-    (2, DATEADD('DAY', -1, CURRENT_DATE), 1, 2),
-    (3, DATEADD('DAY', -1, CURRENT_DATE), 2, 2),
+    (2, 1, DATEADD('DAY', -1, CURRENT_DATE), 1, 2),
+    (3, 1, DATEADD('DAY', -1, CURRENT_DATE), 2, 2),
 
     -- 테마3: 3개
-    (4, DATEADD('DAY', -1, CURRENT_DATE), 1, 3),
-    (5, DATEADD('DAY', -1, CURRENT_DATE), 2, 3),
-    (6, DATEADD('DAY', -1, CURRENT_DATE), 3, 3),
+    (4, 1, DATEADD('DAY', -1, CURRENT_DATE), 1, 3),
+    (5, 1, DATEADD('DAY', -1, CURRENT_DATE), 2, 3),
+    (6, 1, DATEADD('DAY', -1, CURRENT_DATE), 3, 3),
 
     -- 테마4: 4개
-    (7, DATEADD('DAY', -1, CURRENT_DATE), 1, 4),
-    (8, DATEADD('DAY', -1, CURRENT_DATE), 2, 4),
-    (9, DATEADD('DAY', -1, CURRENT_DATE), 3, 4),
-    (10, CURRENT_DATE, 1, 4),
+    (7, 1, DATEADD('DAY', -1, CURRENT_DATE), 1, 4),
+    (8, 1, DATEADD('DAY', -1, CURRENT_DATE), 2, 4),
+    (9, 1, DATEADD('DAY', -1, CURRENT_DATE), 3, 4),
+    (10, 1, CURRENT_DATE, 1, 4),
 
     -- 테마5: 5개
-    (11, DATEADD('DAY', -1, CURRENT_DATE), 1, 5),
-    (12, DATEADD('DAY', -1, CURRENT_DATE), 2, 5),
-    (13, DATEADD('DAY', -1, CURRENT_DATE), 3, 5),
-    (14, CURRENT_DATE, 1, 5),
-    (15, CURRENT_DATE, 2, 5);
+    (11, 1, DATEADD('DAY', -1, CURRENT_DATE), 1, 5),
+    (12, 1, DATEADD('DAY', -1, CURRENT_DATE), 2, 5),
+    (13, 1, DATEADD('DAY', -1, CURRENT_DATE), 3, 5),
+    (14, 1, CURRENT_DATE, 1, 5),
+    (15, 1, CURRENT_DATE, 2, 5);

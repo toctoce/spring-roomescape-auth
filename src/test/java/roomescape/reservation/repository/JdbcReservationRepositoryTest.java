@@ -45,6 +45,7 @@ class JdbcReservationRepositoryTest {
         Reservation reservation = reservationRepository.save(Reservation.of(memberId, date, reservationTime, theme));
         assertThat(reservation.getId()).isPositive();
         assertThat(reservation.getMemberId()).isEqualTo(memberId);
+        assertThat(reservation.getStoreId()).isEqualTo(1L);
         assertThat(reservation.getDate()).isEqualTo(date);
         assertThat(reservation.getTime()).isEqualTo(reservationTime);
         assertThat(reservation.getTheme()).isEqualTo(theme);
@@ -86,6 +87,27 @@ class JdbcReservationRepositoryTest {
     }
 
     @Test
+    void 매장_id로_예약을_조회하는_테스트() {
+        LocalDate date = LocalDate.of(2099, 5, 6);
+        ReservationTime reservationTime1 = reservationTimeRepository.findById(1L)
+                .orElseThrow(() -> new ReservationTimeNotFoundException(1L));
+        ReservationTime reservationTime2 = reservationTimeRepository.findById(2L)
+                .orElseThrow(() -> new ReservationTimeNotFoundException(2L));
+        Theme theme = themeRepository.findById(1L)
+                .orElseThrow(() -> new ThemeNotFoundException(1L));
+
+        Reservation reservation1 = reservationRepository.save(
+                Reservation.of(null, 1L, 1L, date, reservationTime1, theme));
+        Reservation reservation2 = reservationRepository.save(
+                Reservation.of(null, 2L, 1L, date, reservationTime2, theme));
+        reservationRepository.save(Reservation.of(null, 3L, 2L, date, reservationTime1, theme));
+
+        List<Reservation> reservations = reservationRepository.findByStoreId(1L);
+
+        assertThat(reservations).containsExactly(reservation2, reservation1);
+    }
+
+    @Test
     void 예약을_수정하는_테스트() {
         LocalDate date = LocalDate.of(2099, 5, 6);
         ReservationTime reservationTime1 = reservationTimeRepository.findById(1L)
@@ -101,8 +123,25 @@ class JdbcReservationRepositoryTest {
         );
 
         assertThat(updatedReservation.getDate()).isEqualTo(LocalDate.of(2099, 5, 7));
+        assertThat(updatedReservation.getStoreId()).isEqualTo(1L);
         assertThat(updatedReservation.getTime()).isEqualTo(reservationTime2);
         assertThat(reservationRepository.findById(reservation.getId())).contains(updatedReservation);
+    }
+
+    @Test
+    void 같은_날짜_시간_테마라도_매장이_다르면_예약을_저장할_수_있다() {
+        LocalDate date = LocalDate.of(2099, 5, 6);
+        ReservationTime reservationTime = reservationTimeRepository.findById(1L)
+                .orElseThrow(() -> new ReservationTimeNotFoundException(1L));
+        Theme theme = themeRepository.findById(1L)
+                .orElseThrow(() -> new ThemeNotFoundException(1L));
+
+        Reservation store1Reservation = reservationRepository.save(
+                Reservation.of(null, 1L, 1L, date, reservationTime, theme));
+        Reservation store2Reservation = reservationRepository.save(
+                Reservation.of(null, 2L, 2L, date, reservationTime, theme));
+
+        assertThat(reservationRepository.findAll()).contains(store1Reservation, store2Reservation);
     }
 
     @Test
@@ -162,9 +201,12 @@ class JdbcReservationRepositoryTest {
                 .orElseThrow(() -> new ThemeNotFoundException(theme_id));
 
         reservationRepository.save(Reservation.of(memberId, date, reservationTime, theme));
-        Optional<Reservation> reservation = reservationRepository.findByDateAndTimeIdAndThemeId(date,
-                time_id,
-                theme_id);
+        Optional<Reservation> reservation =
+                reservationRepository.findByStoreIdAndDateAndTimeIdAndThemeId(
+                        1L,
+                        date,
+                        time_id,
+                        theme_id);
 
         assertThat(reservation).isPresent();
     }
@@ -175,9 +217,11 @@ class JdbcReservationRepositoryTest {
         long time_id = 1L;
         long theme_id = 1L;
 
-        Optional<Reservation> reservation = reservationRepository.findByDateAndTimeIdAndThemeId(date,
-                time_id,
-                theme_id);
+        Optional<Reservation> reservation =
+                reservationRepository.findByDateAndTimeIdAndThemeId(
+                        date,
+                        time_id,
+                        theme_id);
 
         assertThat(reservation).isEmpty();
     }

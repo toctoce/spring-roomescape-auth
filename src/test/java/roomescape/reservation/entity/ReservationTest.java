@@ -18,6 +18,12 @@ class ReservationTest {
     }
 
     @Test
+    void 예약_매장_id가_null이면_검증에_실패한다() {
+        assertThatThrownBy(() -> Reservation.of(null, 1L, null, LocalDate.of(2026, 5, 9), reservationTime(), createTheme()))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void 예약_날짜가_null이면_검증에_실패한다() {
         assertThatThrownBy(() -> Reservation.of(1L, null, reservationTime(), createTheme()))
                 .isInstanceOf(IllegalArgumentException.class);

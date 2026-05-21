@@ -25,10 +25,13 @@ import roomescape.theme.entity.Theme;
 @Repository
 public class JdbcReservationRepository implements ReservationRepository {
 
+    private static final Long DEFAULT_STORE_ID = 1L;
+
     private static final String SELECT_RESERVATION_WITH_TIME_AND_THEME = """
             SELECT
                 r.id AS reservation_id,
                 r.member_id AS reservation_member_id,
+                r.store_id AS reservation_store_id,
                 r.date,
                 rt.id AS id,
                 rt.start_at,
@@ -51,6 +54,7 @@ public class JdbcReservationRepository implements ReservationRepository {
             Reservation.of(
                     rs.getLong("reservation_id"),
                     rs.getLong("reservation_member_id"),
+                    rs.getLong("reservation_store_id"),
                     rs.getObject("date", LocalDate.class),
                     RESERVATION_TIME_ROW_MAPPER.mapRow(rs, rowNum),
                     THEME_ROW_MAPPER.mapRow(rs, rowNum)
@@ -63,7 +67,7 @@ public class JdbcReservationRepository implements ReservationRepository {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.jdbcInsert = new SimpleJdbcInsert(source)
                 .withTableName("RESERVATION")
-                .usingColumns("member_id", "date", "time_id", "theme_id")
+                .usingColumns("member_id", "store_id", "date", "time_id", "theme_id")
                 .usingGeneratedKeyColumns("id");
     }
 
@@ -73,6 +77,7 @@ public class JdbcReservationRepository implements ReservationRepository {
         Theme theme = reservation.getTheme();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("member_id", reservation.getMemberId())
+                .addValue("store_id", reservation.getStoreId())
                 .addValue("date", reservation.getDate())
                 .addValue("time_id", time.getId())
                 .addValue("theme_id", theme.getId());
@@ -100,9 +105,25 @@ public class JdbcReservationRepository implements ReservationRepository {
 
     @Override
     public Optional<Reservation> findByDateAndTimeIdAndThemeId(LocalDate date, Long timeId, Long themeId) {
+        return findByStoreIdAndDateAndTimeIdAndThemeId(DEFAULT_STORE_ID, date, timeId, themeId);
+    }
+
+    @Override
+    public Optional<Reservation> findByStoreIdAndDateAndTimeIdAndThemeId(
+            Long storeId,
+            LocalDate date,
+            Long timeId,
+            Long themeId
+    ) {
         String sql = SELECT_RESERVATION_WITH_TIME_AND_THEME
-                + "WHERE r.date = :date AND r.time_id = :timeId AND r.theme_id = :themeId";
+                + """
+                WHERE r.store_id = :storeId
+                    AND r.date = :date
+                    AND r.time_id = :timeId
+                    AND r.theme_id = :themeId
+                """;
         SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("storeId", storeId)
                 .addValue("date", date)
                 .addValue("timeId", timeId)
                 .addValue("themeId", themeId);
@@ -131,6 +152,15 @@ public class JdbcReservationRepository implements ReservationRepository {
     }
 
     @Override
+    public List<Reservation> findByStoreId(Long storeId) {
+        String sql = SELECT_RESERVATION_WITH_TIME_AND_THEME
+                + "WHERE r.store_id = :storeId ORDER BY r.date DESC, rt.start_at DESC";
+        SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("storeId", storeId);
+        return namedParameterJdbcTemplate.query(sql, params, reservationRowMapper);
+    }
+
+    @Override
     public Reservation update(Reservation reservation) {
         int affectedRows = executeUpdate(reservation);
         if (affectedRows == 0) {
@@ -143,12 +173,14 @@ public class JdbcReservationRepository implements ReservationRepository {
         String sql = """
                 UPDATE reservation
                 SET date = :date,
+                    store_id = :storeId,
                     time_id = :timeId,
                     theme_id = :themeId
                 WHERE id = :id
                 """;
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", reservation.getId())
+                .addValue("storeId", reservation.getStoreId())
                 .addValue("date", reservation.getDate())
                 .addValue("timeId", reservation.getTime().getId())
                 .addValue("themeId", reservation.getTheme().getId());

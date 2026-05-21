@@ -23,6 +23,8 @@ import roomescape.theme.repository.ThemeRepository;
 @Service
 public class ReservationService {
 
+    private static final Long DEFAULT_STORE_ID = 1L;
+
     private final ReservationRepository reservationRepository;
     private final ReservationTimeRepository reservationTimeRepository;
     private final ThemeRepository themeRepository;
@@ -40,6 +42,7 @@ public class ReservationService {
         Reservation reservation = createReservation(
                 null,
                 memberId,
+                resolveStoreId(request.storeId()),
                 request.timeId(),
                 request.themeId(),
                 request.date());
@@ -90,6 +93,7 @@ public class ReservationService {
         Reservation updatedReservation = createReservation(
                 id,
                 memberId,
+                reservation.getStoreId(),
                 timeId,
                 themeId,
                 date);
@@ -103,7 +107,11 @@ public class ReservationService {
         }
     }
 
-    private Reservation createReservation(Long id, Long memberId, Long timeId, Long themeId, LocalDate date) {
+    private Long resolveStoreId(Long storeId) {
+        return storeId == null ? DEFAULT_STORE_ID : storeId;
+    }
+
+    private Reservation createReservation(Long id, Long memberId, Long storeId, Long timeId, Long themeId, LocalDate date) {
         ReservationTime reservationTime = reservationTimeRepository.findById(timeId)
                 .orElseThrow(() -> new ReservationTimeNotFoundException(timeId));
         Theme theme = themeRepository.findById(themeId)
@@ -114,7 +122,7 @@ public class ReservationService {
             throw new PastReservationNotAllowedException();
         }
 
-        reservationRepository.findByDateAndTimeIdAndThemeId(date, timeId, themeId)
+        reservationRepository.findByStoreIdAndDateAndTimeIdAndThemeId(storeId, date, timeId, themeId)
                 .ifPresent(reservation -> {
                     throw new ReservationDuplicatedException(date, timeId, themeId);
                 });
@@ -122,6 +130,7 @@ public class ReservationService {
         return Reservation.of(
                 id,
                 memberId,
+                storeId,
                 date,
                 reservationTime,
                 theme);

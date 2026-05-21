@@ -9,6 +9,10 @@ public record ReservationRequest(
         @NotNull
         Long timeId,
         @NotNull
-        Long themeId
+        Long themeId,
+        Long storeId
 ) {
+    public ReservationRequest(LocalDate date, Long timeId, Long themeId) {
+        this(date, timeId, themeId, null);
+    }
 }

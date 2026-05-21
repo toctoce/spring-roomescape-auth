@@ -16,6 +16,6 @@ INSERT INTO members (name, email, password, role, store_id)
 VALUES ('봉구스', 'bongus@example.com', 'password', 'USER', NULL),
        ('밀란', 'milan@example.com', 'password', 'MANAGER', 1);
 
-INSERT INTO reservation (member_id, date, time_id, theme_id)
-VALUES (1, '2026-05-06', 1, 1),
-       (2, '2026-05-07', 2, 2);
+INSERT INTO reservation (member_id, store_id, date, time_id, theme_id)
+VALUES (1, 1, '2026-05-06', 1, 1),
+       (2, 1, '2026-05-07', 2, 2);

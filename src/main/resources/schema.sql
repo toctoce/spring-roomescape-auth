@@ -41,13 +41,14 @@ CREATE TABLE IF NOT EXISTS reservation
 (
     id       BIGINT       NOT NULL AUTO_INCREMENT,
     member_id BIGINT      NOT NULL,
+    store_id BIGINT       NOT NULL DEFAULT 1,
     date     VARCHAR(255) NOT NULL,
     time_id  BIGINT       NOT NULL,
     theme_id BIGINT       NOT NULL,
 
     PRIMARY KEY (id),
-    CONSTRAINT unique_reservation_date_time_theme
-        UNIQUE (date, time_id, theme_id),
+    CONSTRAINT unique_reservation_store_date_time_theme
+        UNIQUE (store_id, date, time_id, theme_id),
     FOREIGN KEY (member_id) REFERENCES members (id),
     FOREIGN KEY (time_id) REFERENCES reservation_time (id),
     FOREIGN KEY (theme_id) REFERENCES theme (id)

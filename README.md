@@ -471,9 +471,9 @@ Authorization: Bearer wrong-token
   - [x] `Member`에 `role`, `storeId`를 추가한다.
   - [x] 회원 역할은 `USER`, `MANAGER`로 구분한다.
 
-- [ ] 예약과 매장을 연결한다.
-  - 예약에 `storeId`를 추가한다.
-  - 예약 생성, 조회, 응답에서 매장 정보를 다룰 수 있게 변경한다.
+- [x] 예약과 매장을 연결한다.
+  - [x] 예약에 `storeId`를 추가한다.
+  - [x] 예약 생성, 조회, 응답에서 매장 정보를 다룰 수 있게 변경한다.
 
 - [ ] 기존 관리자 예약 API에 인가를 적용한다.
   - `GET /admin/reservations`는 매니저의 자기 매장 예약만 조회한다.
