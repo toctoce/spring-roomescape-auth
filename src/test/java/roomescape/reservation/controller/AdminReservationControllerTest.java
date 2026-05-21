@@ -1,6 +1,7 @@
 package roomescape.reservation.controller;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.is;
 
 import io.restassured.RestAssured;
@@ -17,8 +18,8 @@ class AdminReservationControllerTest {
 
     @Test
     void 관리자가_예약_목록을_조회한다() {
-        createReservation("milan@example.com", 1L);
-        createReservation("brown@example.com", 2L);
+        Integer myStoreReservationId = createReservation("milan@example.com", 1L);
+        Integer otherStoreReservationId = createReservation("brown@example.com", 2L);
         String sessionId = login("milan@example.com");
 
         RestAssured.given().log().all()
@@ -26,6 +27,8 @@ class AdminReservationControllerTest {
                 .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(200)
+                .body("id", hasItem(myStoreReservationId))
+                .body("id", not(hasItem(otherStoreReservationId)))
                 .body("memberId", hasItem(2))
                 .body("date", hasItem("2099-05-03"))
                 .body("time.id", hasItem(1))
@@ -85,12 +88,72 @@ class AdminReservationControllerTest {
     }
 
     @Test
+    void 로그인하지_않으면_관리자_예약을_수정할_수_없다() {
+        Integer id = createReservation("milan@example.com", 1L);
+        Map<String, Object> params = new HashMap<>();
+        params.put("date", "2099-05-04");
+        params.put("timeId", 2L);
+        params.put("themeId", 1L);
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().patch("/admin/reservations/" + id)
+                .then().log().all()
+                .statusCode(401)
+                .body("message", is("로그인이 필요합니다."));
+    }
+
+    @Test
+    void 로그인하지_않으면_관리자_예약을_삭제할_수_없다() {
+        Integer id = createReservation("milan@example.com", 1L);
+
+        RestAssured.given().log().all()
+                .when().delete("/admin/reservations/" + id)
+                .then().log().all()
+                .statusCode(401)
+                .body("message", is("로그인이 필요합니다."));
+    }
+
+    @Test
     void 로그인하지_않으면_관리자_예약을_조회할_수_없다() {
         RestAssured.given().log().all()
                 .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(401)
                 .body("message", is("로그인이 필요합니다."));
+    }
+
+    @Test
+    void 매니저가_아니면_관리자_예약을_수정할_수_없다() {
+        Integer id = createReservation("milan@example.com", 1L);
+        String sessionId = login("bongus@example.com");
+        Map<String, Object> params = new HashMap<>();
+        params.put("date", "2099-05-04");
+        params.put("timeId", 2L);
+        params.put("themeId", 1L);
+
+        RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().patch("/admin/reservations/" + id)
+                .then().log().all()
+                .statusCode(403)
+                .body("message", is("접근 권한이 없습니다."));
+    }
+
+    @Test
+    void 매니저가_아니면_관리자_예약을_삭제할_수_없다() {
+        Integer id = createReservation("milan@example.com", 1L);
+        String sessionId = login("bongus@example.com");
+
+        RestAssured.given().log().all()
+                .cookie("JSESSIONID", sessionId)
+                .when().delete("/admin/reservations/" + id)
+                .then().log().all()
+                .statusCode(403)
+                .body("message", is("접근 권한이 없습니다."));
     }
 
     @Test
